@@ -1,14 +1,17 @@
 services:
   grafana:
-    image: grafana/grafana-oss
     container_name: grafana
+    image: grafana/grafana-oss
     restart: unless-stopped
     environment:
       - "GF_INSTALL_PLUGINS=marcusolsson-csv-datasource"
-      - "GF_INSTALL_PLUGINS=marcusolsson-csv-datasource"
+      - "GF_SECURITY_ADMIN_USER=demo"
+      - "GF_SECURITY_ADMIN_PASSWORD=test"
+      - "GF_PLUGIN_marcusolsson-csv-datasource_allow_local_mode=true"
     ports:
       - '3000:3000'
     volumes:
-      - ./grafana_storage:/var/lib/grafana
       - ../output:/data
       - ./grafana_etc:/etc/grafana/
+
+
