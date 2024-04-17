@@ -62,8 +62,13 @@ future_features['year'] = [date.year for date in prediction_dates]
 future_predictions = rf_model.predict(future_features)
 future_features['predictions'] = future_predictions.astype(int)
 
-for i in range(target_days):
-    print("> expected=%.3f, predicted=%.3f" % (y_test.iloc[i], future_features['predictions'].iloc[i]))
+out = "target_days = %s\nrf_regressor_params = \n" % target_days
+for k, v in rf_regressor_params.items():
+    out += f"\t{k} = {v}\n"
+out += "date;occupancy;prediction\n"
+for index in y_test.index:
+    out += "%s;%i;%i\n" % (index, y_test.loc[index], future_features['predictions'].loc[index])
+    print("%s > expected=%i, predicted=%i" % (index, y_test.loc[index], future_features['predictions'].loc[index]))
 
 rmse = root_mean_squared_error(y_test.tail(target_days), future_features['predictions'])
 mea = mean_absolute_error(y_test.tail(target_days), future_features['predictions'])
@@ -73,4 +78,6 @@ print("Root Mean Squared Error: ", rmse)
 print("Mean Absolute Error: ", mea)
 print("Mean Absolute Percentage Error: ", mape)
 
-# To-Do: write output to csv 
+print(out)
+with open(output_file, 'w') as f:
+    f.write(out)

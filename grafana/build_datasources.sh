@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ $1 == "-h" ];then
+if [ "$1" = "-h" ];then
 	echo """
 This script takes every file from the folder 'intelligent-planning-of-care-staff/output' and creates a corresponding datasource
 for grafana in the folder 'intelligent-planning-of-care-staff/grafana/grafana_etc/provisioning/datasources'.
