@@ -1,7 +1,7 @@
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_absolute_error, root_mean_squared_error
 #import matplotlib.pyplot as plt
 
 target_days = 31
@@ -34,6 +34,15 @@ rf_model = RandomForestRegressor(n_estimators=100, random_state=42)
 rf_model.fit(x_train, y_train)
 
 y_pred = rf_model.predict(x_test)
+
+for i in range(target_days):
+    print("> expected=%.3f, predicted=%.3f" % (y_test[i], y_pred[i]))
+
+y_pred = rf_model.predict(x_test)
+rmse = root_mean_squared_error(y_test, y_pred)
+mea = mean_absolute_error(y_test, y_pred)
+print("Root Mean Squared Error: ", rmse)
+print("Mean Absolute Error: ", mea)
 
 latest_date = data.index.max()
 future_dates = [latest_date + pd.DateOffset(days=i) for i in range(1, target_days + 1)]
