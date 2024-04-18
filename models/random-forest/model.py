@@ -13,7 +13,7 @@ from sklearn.metrics import (
 occupancy_source = "../../output/cut-data.csv"
 unix_timestamp = int(time.time())
 output_file = (
-    "../../output/random-forest/latest-random-forest-%d.csv" % unix_timestamp
+    "../../output/random-forest/random-forest-%d.csv" % unix_timestamp
 )
 # relevant for model
 target_days = 31
