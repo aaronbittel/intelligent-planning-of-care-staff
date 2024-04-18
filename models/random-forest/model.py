@@ -87,6 +87,9 @@ for index in y_test.index:
         % (index, y_test.loc[index], future_features["predictions"].loc[index])
     )
 
+if out.endswith("\n"):
+    out = out[:-1]
+
 rmse = root_mean_squared_error(
     y_test.tail(target_days), future_features["predictions"]
 )
