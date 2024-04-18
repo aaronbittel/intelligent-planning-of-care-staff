@@ -75,9 +75,9 @@ future_features["predictions"] = future_predictions.astype(int)
 out = "target_days = %s\nrf_regressor_params = \n" % target_days
 for k, v in rf_regressor_params.items():
     out += f"\t{k} = {v}\n"
-out += "date;occupancy;prediction\n"
+out += "date,occupancy,prediction\n"
 for index in y_test.index:
-    out += "%s;%i;%i\n" % (
+    out += "%s,%i,%i\n" % (
         index,
         y_test.loc[index],
         future_features["predictions"].loc[index],
