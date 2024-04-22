@@ -13,7 +13,7 @@ To use these generated datasources:
 	"""
 fi
 
-for FILE in `ls ../output/ | grep -v descriptive_analysis | sed 's/.csv//g'`; do
+for FILE in `ls ../output/ | grep -v descriptive_analysis | grep -v README.md | sed 's/.csv//g'`; do
 	cat << EOF > grafana_etc/provisioning/datasources/${FILE}.yaml
 apiVersion: 1
 
