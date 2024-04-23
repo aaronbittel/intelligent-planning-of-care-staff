@@ -2,9 +2,11 @@ import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import root_mean_squared_error
 import numpy as np
+import math
 import itertools
+from multiprocessing import Process, Queue
 import time
-
+import pprint
 
 def iterate_parameter_combinations(parameters):
     """
@@ -27,11 +29,42 @@ def iterate_parameter_combinations(parameters):
         yield combination_dict
 
 
+def split_list(asdf, parts):
+    return_list = []
+    avg = math.ceil(len(asdf) / parts)
+    for i in range(parts):
+        if (avg*(i+1)) < len(asdf)-1:
+            return_list.append(asdf[(i*avg):((i+1)*avg)])
+        elif (avg*(i+1)) <= len(asdf):
+            return_list.append(asdf[(i*avg):])
+    return return_list
+
+def thread_function(run_grid, q):
+    good_runs = []
+    count = 0
+    best_rmse = 20
+    runs = 1
+    for param in run_grid:
+        runs *= len(run_grid[param])
+
+    for params in iterate_parameter_combinations(run_grid):
+        rf_model = RandomForestRegressor(**params)
+        rf_model.fit(x_train, y_train)
+        future_predictions = rf_model.predict(future_features)
+        rmse = root_mean_squared_error(y_test.tail(target_days), future_predictions)
+        if rmse < best_rmse:
+            best_rmse = rmse
+            params['rmse'] = rmse
+            good_runs.append(params)
+        count += 1
+        print('Thread:', num, ': ', count, '/', runs)
+    q.put(good_runs)
+
 start = time.time()
 # Variables
 
 # Number of trees in random forest
-n_estimators = [int(x) for x in np.linspace(start=1, stop=2000, num=16)]
+n_estimators = [int(x) for x in np.linspace(start=1, stop=2000, num=8)]
 # Number of features to consider at every split
 max_features = ['log2', 'sqrt']
 # Maximum number of levels in tree
@@ -44,12 +77,17 @@ min_samples_leaf = [2, 3, 5, 7]
 # Method of selecting samples for training each tree
 bootstrap = [True, False]
 # Create the random grid
-grid = {'n_estimators': n_estimators,
-               'max_features': max_features,
-              # 'max_depth': max_depth,
-              # 'min_samples_split': min_samples_split,
-              # 'min_samples_leaf': min_samples_leaf,
+grid = {'max_features': max_features,
+               #'max_depth': max_depth,
+               #'min_samples_split': min_samples_split,
+               #'min_samples_leaf': min_samples_leaf,
                'bootstrap': bootstrap}
+
+grids = []
+for part in split_list(n_estimators, 8):
+    grids.append({'n_estimators': part})
+    grids[-1].update(grid)
+
 # In/Out:
 occupancy_source = "../../output/cut-data.csv"
 # relevant for model
@@ -86,31 +124,26 @@ future_features["day_of_week"] = [date.dayofweek for date in prediction_dates]
 future_features["month"] = [date.month for date in prediction_dates]
 future_features["year"] = [date.year for date in prediction_dates]
 
-good_runs = []
-count = 0
-best_rmse = 20
-runs = 1
 
-for param in grid:
-    runs *= len(grid[param])
-
-for params in iterate_parameter_combinations(grid):
-    rf_model = RandomForestRegressor(**params)
-    rf_model.fit(x_train, y_train)
-    future_predictions = rf_model.predict(future_features)
-    rmse = root_mean_squared_error( y_test.tail(target_days), future_predictions )
-    if rmse < best_rmse:
-        best_rmse = rmse
-        print(rmse, params)
-        good_runs.append(params)
-    count+=1
-    print(count, '/', runs)
 
 latest_date = data.index.max()
 prediction_dates = [
     latest_date + pd.DateOffset(days=i) for i in range(1 + target_days * -1, 1)
 ]
+results=[]
+q = Queue()
+processes = list()
+for num,grid in enumerate(grids):
+    p = Process(target=thread_function, args=(grid, q))
+    p.start()
+    processes.append(p)
 
-print(best_rmse)
-print(good_runs[-1])
-print(time.time() - start)
+for p in processes:
+    ret = q.get()
+    results.append(ret)
+
+for p in processes:
+    p.join()
+
+pprint.pprint(results)
+print('Runtime: ', time.time()-start)
