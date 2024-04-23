@@ -33,9 +33,9 @@ def split_list(asdf, parts):
     return_list = []
     avg = math.ceil(len(asdf) / parts)
     for i in range(parts):
-        if (avg*(i+1)) < len(asdf)-1:
+        if (avg*(i+1)) < len(asdf):
             return_list.append(asdf[(i*avg):((i+1)*avg)])
-        elif (avg*(i+1)) <= len(asdf):
+        elif (avg*(i+1)) >= len(asdf):
             return_list.append(asdf[(i*avg):])
     return return_list
 
@@ -78,9 +78,9 @@ min_samples_leaf = [2, 3, 5, 7]
 bootstrap = [True, False]
 # Create the random grid
 grid = {'max_features': max_features,
-               #'max_depth': max_depth,
-               #'min_samples_split': min_samples_split,
-               #'min_samples_leaf': min_samples_leaf,
+              # 'max_depth': max_depth,
+              # 'min_samples_split': min_samples_split,
+              # 'min_samples_leaf': min_samples_leaf,
                'bootstrap': bootstrap}
 
 grids = []
