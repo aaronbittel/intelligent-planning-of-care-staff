@@ -2,22 +2,18 @@
 import pandas as pd
 import numpy as np
 import time
-# plotting data - matplotlib
-from matplotlib import pyplot as plt
 # time series - statsmodels 
-# Seasonality decomposition
-from statsmodels.tsa.seasonal import seasonal_decompose
-from statsmodels.tsa.seasonal import seasonal_decompose 
 # holt winters 
-# single exponential smoothing
-from statsmodels.tsa.holtwinters import SimpleExpSmoothing   
 # double and triple exponential smoothing
 from statsmodels.tsa.holtwinters import ExponentialSmoothing
 # accuracy metrics
 from sklearn.metrics import mean_absolute_error,mean_squared_error,mean_absolute_percentage_error
 
+#TODO Dynamisch programmieren und 30 Tage in zukunft schreiben exportieren, parameter noch genauer anschauen
+
+
 #data
-health = pd.read_csv('../output/descriptive_analysis.csv',
+health = pd.read_csv('../output/cut-data.csv',
     usecols=['dates','occupancy'], index_col='dates', parse_dates=True)
 
 #output_data
@@ -37,10 +33,10 @@ holt_params = {
     'initialization_method': 
     'estimated'}
 
-
 #train and test
-train_health = health[50:699]
-test_health = health[699:729]
+#multigrid search GridSearchCV
+train_health = health[0:len(health)-target_days]
+test_health = health[len(health)-target_days:len(health)]
 
 fitted_model = ExponentialSmoothing(train_health['occupancy'],**holt_params).fit()
 test_predictions = fitted_model.forecast(target_days)
@@ -59,7 +55,7 @@ out = out + (f'Mean Absolute Percentage Error = {mean_absolute_percentage_error(
 out = out + 'dates' + ',' + 'occupancy' + '\n'
 
 for i in range(len(test_predictions)):
-    out = out + str((train_health.index[len(train_health)-1] + pd.DateOffset(i)).date()) + ',' + str(test_predictions.iloc[i]) + '\n'
+    out = out + str((train_health.index[len(train_health)-1] + pd.DateOffset(i+1)).date()) + ',' + str(test_predictions.iloc[i]) + '\n'
 
 with open(output_file,'w') as f:
     f.write(out)
