@@ -143,7 +143,7 @@
               "type": "number"
             }
           ],
-          "skipRows": 0
+          "skipRows": 20 
         }
       ],
       "title": "Panel Title",
