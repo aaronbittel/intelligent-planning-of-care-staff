@@ -64,11 +64,11 @@ start = time.time()
 # Variables
 
 # Number of trees in random forest
-n_estimators = [int(x) for x in np.linspace(start=1, stop=2000, num=8)]
+n_estimators = [int(x) for x in np.linspace(start=1, stop=1000, num=50)]
 # Number of features to consider at every split
 max_features = ['log2', 'sqrt']
 # Maximum number of levels in tree
-max_depth = [int(x) for x in np.linspace(1, 100, num = 2)]
+max_depth = [int(x) for x in np.linspace(1, 100, num = 20)]
 max_depth.append(None)
 # Minimum number of samples required to split a node
 min_samples_split = [2, 3, 5, 7]
@@ -78,9 +78,9 @@ min_samples_leaf = [2, 3, 5, 7]
 bootstrap = [True, False]
 # Create the random grid
 grid = {'max_features': max_features,
-              # 'max_depth': max_depth,
-              # 'min_samples_split': min_samples_split,
-              # 'min_samples_leaf': min_samples_leaf,
+               'max_depth': max_depth,
+               'min_samples_split': min_samples_split,
+               'min_samples_leaf': min_samples_leaf,
                'bootstrap': bootstrap}
 
 grids = []
