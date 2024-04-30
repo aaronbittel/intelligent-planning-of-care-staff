@@ -102,7 +102,7 @@
         {
           "datasource": {
             "type": "marcusolsson-csv-datasource",
-            "uid": "P8848D1151E71B079"
+            "uid": "P73DC9BBAD2DE26BC"
           },
           "decimalSeparator": ".",
           "delimiter": ",",
@@ -208,6 +208,6 @@
   "timezone": "browser",
   "title": "Mixed-Data",
   "uid": "adj16nde8uwhsa",
-  "version": 2,
+  "version": 3,
   "weekStart": ""
 }
