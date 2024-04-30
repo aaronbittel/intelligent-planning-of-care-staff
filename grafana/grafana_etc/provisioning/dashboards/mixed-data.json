@@ -18,7 +18,6 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 3,
   "links": [],
   "panels": [
     {
@@ -81,8 +80,8 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 16,
-        "w": 20,
+        "h": 22,
+        "w": 24,
         "x": 0,
         "y": 0
       },
@@ -125,10 +124,10 @@
         {
           "datasource": {
             "type": "marcusolsson-csv-datasource",
-            "uid": "PAD90DF855E63082C"
+            "uid": "P642E6C44E041F0AE"
           },
           "decimalSeparator": ".",
-          "delimiter": ";",
+          "delimiter": ",",
           "header": true,
           "hide": false,
           "ignoreUnknown": false,
@@ -139,31 +138,76 @@
               "type": "time"
             },
             {
-              "name": "prediction",
+              "name": "occupancy",
               "type": "number"
             }
           ],
-          "skipRows": 20 
+          "skipRows": 0
+        },
+        {
+          "datasource": {
+            "type": "marcusolsson-csv-datasource",
+            "uid": "PFF4446812EB337A0"
+          },
+          "decimalSeparator": ".",
+          "delimiter": ",",
+          "header": true,
+          "hide": false,
+          "ignoreUnknown": false,
+          "refId": "C",
+          "schema": [
+            {
+              "name": "date",
+              "type": "time"
+            },
+            {
+              "name": "occupancy",
+              "type": "number"
+            }
+          ],
+          "skipRows": 0
+        },
+        {
+          "datasource": {
+            "type": "marcusolsson-csv-datasource",
+            "uid": "P8CC10C52C9CBE1D2"
+          },
+          "decimalSeparator": ".",
+          "delimiter": ",",
+          "header": true,
+          "hide": false,
+          "ignoreUnknown": false,
+          "refId": "D",
+          "schema": [
+            {
+              "name": "date",
+              "type": "time"
+            },
+            {
+              "name": "occupancy",
+              "type": "number"
+            }
+          ],
+          "skipRows": 0
         }
       ],
       "title": "Panel Title",
       "type": "timeseries"
     }
   ],
-  "refresh": "",
   "schemaVersion": 39,
   "tags": [],
   "templating": {
     "list": []
   },
   "time": {
-    "from": "2017-05-01T00:00:00.000Z",
-    "to": "2019-03-31T00:00:00.000Z"
+    "from": "2017-04-27T08:19:11.576Z",
+    "to": "2019-05-16T23:12:21.255Z"
   },
   "timepicker": {},
   "timezone": "browser",
   "title": "Mixed-Data",
   "uid": "adj16nde8uwhsa",
-  "version": 1,
+  "version": 2,
   "weekStart": ""
 }
