@@ -1,6 +1,8 @@
 import os
 import models.random_forest.rf as rf
+import models.sarima.sarima as s
 import pandas as pd
+
 
 def read_in_csv(csv_file):
     """
@@ -16,6 +18,7 @@ def read_in_csv(csv_file):
     data["occupancy"] = data["occupancy"].astype(int)
     return data
 
+
 def write_file(data, csv_file_path):
     """
 
@@ -27,7 +30,7 @@ def write_file(data, csv_file_path):
         csv_file.write(data.to_csv(header=False))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Gather Input
     output_folder = "output"
     input_folder = "output"
@@ -35,20 +38,20 @@ if __name__ == '__main__':
     data = read_in_csv(os.path.join(input_folder, input_file))
 
     # Build models
-    rf_model = rf.Rf(data, 31, {'n_estimators': 1})
-    #hw_model =
-    #sarima_model =
+    rf_model = rf.Rf(data, 31, {"n_estimators": 1})
+    # hw_model =
+    sarima_model = s.Sarima(data)
 
     # Let each model make a prediction
     prediction_rf = rf_model.predict()
-    #prediction_hw = hw_model.predict()
-    #prediction_sarima = sarima_model.predict()
+    # prediction_hw = hw_model.predict()
+    prediction_sarima = sarima_model.predict()
 
     # Write Output
-    write_file(prediction_rf, 'output/latest_random_forest.csv')
-    #write_file(prediction_hw, 'output/latest_holt_winter.csv')
-    #write_file(prediction_sarima, 'output/latest_sarima.csv')
+    write_file(prediction_rf, "output/latest_random_forest.csv")
+    # write_file(prediction_hw, 'output/latest_holt_winter.csv')
+    write_file(prediction_sarima, "output/latest_sarima.csv")
+
     if os.path.exists(os.path.join(output_folder, "latest_random_forest.csv")):
         os.remove(os.path.join(output_folder, "latest_history.csv"))
-    os.symlink(input_file, os.path.join(output_folder, 'latest_history.csv'))
-
+    os.symlink(input_file, os.path.join(output_folder, "latest_history.csv"))
