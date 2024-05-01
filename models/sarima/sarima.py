@@ -2,8 +2,8 @@ import pandas as pd
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 
 DEFAULT_PARAMS = {
-    "order": (2, 0, 1),
-    "seasonal_order": (0, 0, 0, 7),
+    "order": (2, 0, 0),
+    "seasonal_order": (1, 0, 2, 7),
 }
 
 
