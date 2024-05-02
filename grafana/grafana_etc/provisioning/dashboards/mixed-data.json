@@ -36,6 +36,7 @@
             "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
+            "axisSoftMin": 0,
             "barAlignment": 0,
             "drawStyle": "line",
             "fillOpacity": 0,
@@ -195,19 +196,20 @@
       "type": "timeseries"
     }
   ],
+  "refresh": "",
   "schemaVersion": 39,
   "tags": [],
   "templating": {
     "list": []
   },
   "time": {
-    "from": "2017-04-27T08:19:11.576Z",
-    "to": "2019-05-16T23:12:21.255Z"
+    "from": "2024-01-07T06:56:50.442Z",
+    "to": "2024-05-26T11:49:05.160Z"
   },
   "timepicker": {},
   "timezone": "browser",
   "title": "Mixed-Data",
   "uid": "adj16nde8uwhsa",
-  "version": 3,
+  "version": 1,
   "weekStart": ""
 }
