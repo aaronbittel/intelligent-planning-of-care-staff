@@ -38,7 +38,7 @@ if __name__ == "__main__":
     data = read_in_csv(os.path.join(input_folder, input_file))
 
     # Build models
-    rf_model = rf.Rf(data, 31, {"n_estimators": 1})
+    rf_model = rf.Rf(data.copy(deep=True), 31, {"n_estimators": 1})
     # hw_model =
     sarima_model = s.Sarima(data)
 
@@ -46,11 +46,10 @@ if __name__ == "__main__":
     prediction_rf = rf_model.predict()
     # prediction_hw = hw_model.predict()
     prediction_sarima = sarima_model.predict()
-
     # Write Output
     write_file(prediction_rf, "output/latest_random_forest.csv")
     # write_file(prediction_hw, 'output/latest_holt_winter.csv')
-    write_file(prediction_sarima, "output/latest_sarima.csv")
+    prediction_sarima.to_csv("output/latest_sarima.csv", index=False)
 
     if os.path.exists(os.path.join(output_folder, "latest_random_forest.csv")):
         os.remove(os.path.join(output_folder, "latest_history.csv"))

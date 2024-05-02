@@ -1,3 +1,5 @@
+import datetime
+
 import pandas as pd
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 
@@ -11,11 +13,11 @@ class Sarima:
     def __init__(
         self,
         data: pd.DataFrame,
-        predict_range: int = 30,
+        target_days: int = 30,
         sarima_params: dict[str, tuple[int]] = DEFAULT_PARAMS,
     ) -> None:
         self.data = data
-        self.predict_range = predict_range
+        self.target_days = target_days
         self._sarima_params = sarima_params
 
     @property
@@ -30,7 +32,12 @@ class Sarima:
             self._sarima_params = new_params
 
     def predict(self) -> pd.DataFrame:
-        train_data = self.data.iloc[: -self.predict_range]["occupancy"]
+        train_data = self.data["occupancy"]
+        start_date = self.data["date"].iloc[-1] + datetime.timedelta(days=1)
+
+        prediction_dates = [
+            start_date + datetime.timedelta(days=i) for i in range(self.target_days)
+        ]
 
         order = self.sarima_params["order"]
         seasonal_order = self.sarima_params["seasonal_order"]
@@ -41,9 +48,10 @@ class Sarima:
             seasonal_order=seasonal_order,
         )
 
-        model_fit = model.fit()
+        model_fit = model.fit(disp=False)
 
-        return model_fit.forecast(steps=self.predict_range)
+        prediction = model_fit.forecast(steps=self.target_days)
+        return pd.DataFrame({"date": prediction_dates, "occupancy": prediction})
 
     def _check_valid_param(self, param_name: str, nr_of_ints: int) -> bool:
         if (
@@ -56,17 +64,3 @@ class Sarima:
             )
             return False
         return True
-        # raise ValueError(
-        #     f"The '{param_name}' key must be present and the value must be a tuple with {nr_of_ints} ints."
-        # )
-
-
-if __name__ == "__main__":
-    import os
-
-    input_file_path = os.path.join("output", "cut-data.csv")
-    input_data = pd.read_csv(
-        input_file_path, usecols=["dates", "occupancy"], parse_dates=["dates"]
-    )
-    sarima = Sarima(input_data)
-    print(sarima.predict())
