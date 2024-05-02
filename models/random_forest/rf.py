@@ -32,16 +32,16 @@ class Rf:
         rf_model = RandomForestRegressor()
         rf_model.fit(self.x, self.y)
         latest_date = self.data.index.max()
-        prediction_dates = [ latest_date + pd.DateOffset(days=i) for i in range(1 + self.predict_range)]
+        prediction_dates = [ latest_date + pd.DateOffset(days=i) for i in range(1, 1 + self.predict_range)]
         future_features = pd.DataFrame(index=prediction_dates, columns=self.x.columns)
         future_features["day_of_week"] = [date.dayofweek for date in prediction_dates]
         future_features["day_of_year"] = [date.dayofyear for date in prediction_dates]
         future_features["month"] = [date.month for date in prediction_dates]
         future_features["year"] = [date.year for date in prediction_dates]
         future_predictions = rf_model.predict(future_features)
-        future_features["predictions"] = future_predictions.astype(int)
+        future_features["occupancy"] = future_predictions.astype(int)
         # Methode zur Vorhersage von Daten
-        return future_features["predictions"]
+        return pd.DataFrame({"date": future_features.index, "occupancy": future_features["occupancy"].values})
 
     def put_dataset(self, dataset):
         self.data = prepare_data(data=dataset)
@@ -63,22 +63,22 @@ class Rf:
 
     def reset_params(self):
         self.rf_regressor_params = {
-            "n_estimators": 250,
-            "criterion": "squared_error",
-            "max_depth": None,
-            "min_samples_split": 2,
-            "min_samples_leaf": 1,
-            "min_weight_fraction_leaf": 0.0,
-            "max_features": 1.0,
-            "max_leaf_nodes": None,
-            "min_impurity_decrease": 0.0,
-            "bootstrap": True,
-            "oob_score": False,
-            "n_jobs": None,
-            "random_state": None,
-            "verbose": 0,
-            "warm_start": False,
-            "ccp_alpha": 0.0,
-            "max_samples": None,
-            "monotonic_cst": None,
+             "n_estimators": 1,
+             "criterion": "squared_error",
+             "max_depth": 1,
+             "min_samples_split": 2,
+             "min_samples_leaf": 5,
+             "min_weight_fraction_leaf": 0.0,
+             "max_features": 'log2',
+             "max_leaf_nodes": None,
+             "min_impurity_decrease": 0.0,
+             "bootstrap": True,
+             "oob_score": False,
+             "n_jobs": None,
+             "random_state": None,
+             "verbose": 0,
+             "warm_start": False,
+             "ccp_alpha": 0.0,
+             "max_samples": None,
+             "monotonic_cst": None
         }

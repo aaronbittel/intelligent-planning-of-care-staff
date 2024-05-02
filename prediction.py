@@ -1,6 +1,10 @@
 import os
+
+from sklearn.metrics import root_mean_squared_error
+
 import models.random_forest.rf as rf
 import models.sarima.sarima as s
+import models.holt_winter.holt_winter as hw
 import pandas as pd
 
 
@@ -33,24 +37,30 @@ def write_file(data, csv_file_path):
 if __name__ == "__main__":
     # Gather Input
     output_folder = "output"
-    input_folder = "output"
-    input_file = "cut-data.csv"
+    input_folder = "output/landkreise"
+    input_file = "13071.csv"
+    prediction_days = 30
     data = read_in_csv(os.path.join(input_folder, input_file))
-
+    split_day = data["date"].max() - pd.DateOffset(days=prediction_days)
+    data_train = data[data["date"] <= split_day]
+    data_compare = data[data["date"] > split_day]
     # Build models
-    rf_model = rf.Rf(data.copy(deep=True), 31, {"n_estimators": 1})
-    # hw_model =
-    sarima_model = s.Sarima(data)
+    rf_model = rf.Rf(data_train.copy(deep=True), prediction_days, {})
+    hw_model = hw.holtwinters(data_train)
+    sarima_model = s.Sarima(data_train)
 
     # Let each model make a prediction
     prediction_rf = rf_model.predict()
-    # prediction_hw = hw_model.predict()
+    #prediction_hw = hw_model.predict()
     prediction_sarima = sarima_model.predict()
     # Write Output
-    write_file(prediction_rf, "output/latest_random_forest.csv")
-    # write_file(prediction_hw, 'output/latest_holt_winter.csv')
+    prediction_rf.to_csv("output/latest_random_forest.csv", index=False)
+    #write_file(prediction_hw, 'output/latest_holt_winter.csv')
     prediction_sarima.to_csv("output/latest_sarima.csv", index=False)
-
-    if os.path.exists(os.path.join(output_folder, "latest_random_forest.csv")):
+    if os.path.islink(os.path.join(output_folder, "latest_history.csv")):
         os.remove(os.path.join(output_folder, "latest_history.csv"))
-    os.symlink(input_file, os.path.join(output_folder, "latest_history.csv"))
+    os.symlink(os.path.relpath(os.path.join(input_folder, input_file), output_folder), os.path.join(output_folder, "latest_history.csv"))
+    # Calculate Errors:
+    print("RMSE Random Forest: ", root_mean_squared_error(data_compare["occupancy"], prediction_rf["occupancy"]))
+    print("RMSE Sarima: ", root_mean_squared_error(data_compare["occupancy"], prediction_sarima["occupancy"]))
+    #print("RMSE Holt-Winter: ", root_mean_squared_error(data_compare["occupancy"], prediction_hw["occupancy"]))
