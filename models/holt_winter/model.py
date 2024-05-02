@@ -16,7 +16,7 @@ DEFAULT_PARAMS = {
     "trend": "add",
     "damped_trend": False,
     "seasonal": "mul",
-    "seasonal_periods": 60,
+    "seasonal_periods": 350,
     "initialization_method": "heuristic",
 }
 
@@ -33,7 +33,7 @@ class holtwinters:
             self.params = DEFAULT_PARAMS.copy()
         self.params = params
         self.data = data.copy()
-        self.data.set_index("date", inplace=True)
+
         self.data.index.freq = "D"
         self.predict_range = 30
         if smoothing_params is not None:
@@ -149,3 +149,84 @@ class holtwinters:
         else:
             # The data is seasonal
             return True
+
+    def print_params(self):
+        out_text = ""
+        for i in self.params:
+            out_text = out_text + (f"{i}: {self.params[i]}\n")
+        for i in self.smoothing_params:
+            out_text = out_text + (f"{i}: {self.smoothing_params[i]}\n")
+        return out_text
+
+
+if __name__ == "__main__":
+
+    health = pd.read_csv(
+        "../../output/cut-data.csv",
+        usecols=["dates", "occupancy"],
+        index_col="dates",
+        parse_dates=True,
+    )
+
+    unix_timestamp = int(time.time())
+    output_file = (
+        "../../output/holt_winter/holt-winter-%d.csv" % unix_timestamp
+    )
+
+    target_days = 30
+
+    train_health = health[0 : len(health) - target_days]
+    test_health = health[len(health) - target_days : len(health)]
+
+    parameter = {
+        "trend": "add",
+        "damped_trend": False,
+        "seasonal": "mul",
+        "seasonal_periods": 60,
+        "initialization_method": "estimated",
+    }
+
+    smoothing = {
+        "smoothing_level": 0.8,
+        "smoothing_trend": 0.0,
+        "smoothing_seasonal": 0.02,
+    }
+
+    model = holtwinters(train_health, parameter, smoothing)
+    test_predictions = model.predict()
+
+    out = "target_days: 30\n"
+    out = out + "parameters: \n"
+    out = out + model.print_params()
+
+    out = out + (
+        f"Mean Absolute Error = {mean_absolute_error(test_health,test_predictions)}\n"
+    )
+    out = out + (
+        f"Mean Squared Error = {mean_squared_error(test_health,test_predictions)}\n"
+    )
+    out = out + (
+        f"Root Mean Squared Error = {np.sqrt(mean_squared_error(test_health,test_predictions))}\n"
+    )
+    out = out + (
+        f"Mean Absolute Percentage Error = {mean_absolute_percentage_error(test_health,test_predictions)}\n"
+    )
+
+    out = out + "dates" + "," + "occupancy" + "\n"
+
+    for i in range(len(test_predictions)):
+        out = (
+            out
+            + str(
+                (
+                    train_health.index[len(train_health) - 1]
+                    + pd.DateOffset(i + 1)
+                ).date()
+            )
+            + ","
+            + str(test_predictions.iloc[i])
+            + "\n"
+        )
+
+    with open(output_file, "w") as f:
+        f.write(out)
