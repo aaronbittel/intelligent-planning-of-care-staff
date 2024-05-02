@@ -1,4 +1,5 @@
 import os
+import sys
 
 from sklearn.metrics import root_mean_squared_error
 
@@ -40,14 +41,21 @@ if __name__ == "__main__":
     input_folder = "output/landkreise"
     input_file = "13071.csv"
     prediction_days = 30
+    test = False
+    if len(sys.argv) > 1:
+        if sys.argv[1] == "test":
+            test = True
+
     data = read_in_csv(os.path.join(input_folder, input_file))
-    split_day = data["date"].max() - pd.DateOffset(days=prediction_days)
-    data_train = data[data["date"] <= split_day]
-    data_compare = data[data["date"] > split_day]
+    if test:
+        split_day = data["date"].max() - pd.DateOffset(days=prediction_days)
+        data_compare = data[data["date"] > split_day]
+        data = data[data["date"] <= split_day]
+
     # Build models
-    rf_model = rf.Rf(data_train.copy(deep=True), prediction_days, {})
-    hw_model = hw.holtwinters(data_train)
-    sarima_model = s.Sarima(data_train)
+    rf_model = rf.Rf(data.copy(deep=True), prediction_days, {})
+    hw_model = hw.holtwinters(data)
+    sarima_model = s.Sarima(data)
 
     # Let each model make a prediction
     prediction_rf = rf_model.predict()
@@ -60,7 +68,9 @@ if __name__ == "__main__":
     if os.path.islink(os.path.join(output_folder, "latest_history.csv")):
         os.remove(os.path.join(output_folder, "latest_history.csv"))
     os.symlink(os.path.relpath(os.path.join(input_folder, input_file), output_folder), os.path.join(output_folder, "latest_history.csv"))
-    # Calculate Errors:
-    print("RMSE Random Forest: ", root_mean_squared_error(data_compare["occupancy"], prediction_rf["occupancy"]))
-    print("RMSE Sarima: ", root_mean_squared_error(data_compare["occupancy"], prediction_sarima["occupancy"]))
-    #print("RMSE Holt-Winter: ", root_mean_squared_error(data_compare["occupancy"], prediction_hw["occupancy"]))
+
+    # Calculate Errors if in a test scenario:
+    if test:
+        print("RMSE Random Forest: ", root_mean_squared_error(data_compare["occupancy"], prediction_rf["occupancy"]))
+        print("RMSE Sarima: ", root_mean_squared_error(data_compare["occupancy"], prediction_sarima["occupancy"]))
+        #print("RMSE Holt-Winter: ", root_mean_squared_error(data_compare["occupancy"], prediction_hw["occupancy"]))
