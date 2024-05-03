@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ $1 == "-h" ];then
+if [ "$1" = "-h" ];then
 	echo """
 This script takes every file from the folder 'intelligent-planning-of-care-staff/output' and creates a corresponding datasource
 for grafana in the folder 'intelligent-planning-of-care-staff/grafana/grafana_etc/provisioning/datasources'.
@@ -13,7 +13,7 @@ To use these generated datasources:
 	"""
 fi
 
-for FILE in `ls ../output/ | grep -v descriptive_analysis | sed 's/.csv//g'`; do
+for FILE in `ls ../output/ | grep -v descriptive_analysis | grep -v README.md | sed 's/.csv//g'`; do
 	cat << EOF > grafana_etc/provisioning/datasources/${FILE}.yaml
 apiVersion: 1
 
