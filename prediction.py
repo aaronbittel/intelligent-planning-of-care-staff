@@ -39,8 +39,8 @@ if __name__ == "__main__":
     # Gather Input
     output_folder = "output"
     input_folder = "output/landkreise"
-    input_file = "13071.csv"
-    prediction_days = 30
+    input_file = "11000.csv"
+    prediction_days = 32
     test = False
     if len(sys.argv) > 1:
         if sys.argv[1] == "test":
@@ -54,12 +54,12 @@ if __name__ == "__main__":
 
     # Build models
     rf_model = rf.Rf(data.copy(deep=True), prediction_days, {})
-    hw_model = hw.holtwinters(data)
-    sarima_model = s.Sarima(data)
+    hw_model = hw.holtwinters(data, prediction_days)
+    sarima_model = s.Sarima(data, prediction_days)
 
     # Let each model make a prediction
     prediction_rf = rf_model.predict()
-    #prediction_hw = hw_model.predict()
+    prediction_hw = hw_model.predict()
     prediction_sarima = sarima_model.predict()
     # Write Output
     prediction_rf.to_csv("output/latest_random_forest.csv", index=False)
@@ -73,4 +73,4 @@ if __name__ == "__main__":
     if test:
         print("RMSE Random Forest: ", root_mean_squared_error(data_compare["occupancy"], prediction_rf["occupancy"]))
         print("RMSE Sarima: ", root_mean_squared_error(data_compare["occupancy"], prediction_sarima["occupancy"]))
-        #print("RMSE Holt-Winter: ", root_mean_squared_error(data_compare["occupancy"], prediction_hw["occupancy"]))
+        print("RMSE Holt-Winter: ", root_mean_squared_error(data_compare["occupancy"], prediction_hw["occupancy"]))

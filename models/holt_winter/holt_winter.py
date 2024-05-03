@@ -26,16 +26,18 @@ class holtwinters:
     def __init__(
         self,
         data: pd.DataFrame,
+        predict_range: int = 30,
         params: dict = None,
         smoothing_params: dict = None,
     ):
+        self.params = params
         if params is None:
             self.params = DEFAULT_PARAMS.copy()
-        self.params = params
+
         self.data = data.copy()
         self.data.set_index("date", inplace=True)
         self.data.index.freq = "D"
-        self.predict_range = 30
+        self.predict_range = predict_range
         if smoothing_params is not None:
             self.smoothing_params = smoothing_params
         else:
@@ -49,11 +51,9 @@ class holtwinters:
             self.data["occupancy"], **self.params
         ).fit(**self.smoothing_params, optimized=False)
         prediction = model_hw.forecast(self.predict_range)
-
-        print(self.smoothing_params)
-
+        ret = pd.DataFrame({"date": prediction.index, "occupancy": prediction.astype(int)})
         prediction = prediction.astype(int)
-        return prediction
+        return ret
 
     def optimal_smoothing_params(self, data: pd.DataFrame, predict_range):
 
