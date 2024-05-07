@@ -1,7 +1,7 @@
 import os
 import sys
 
-from sklearn.metrics import root_mean_squared_error
+from sklearn.metrics import root_mean_squared_error,mean_absolute_percentage_error
 
 import models.random_forest.rf as rf
 import models.sarima.sarima as s
@@ -38,8 +38,8 @@ def write_file(data, csv_file_path):
 if __name__ == "__main__":
     # Gather Input
     output_folder = "output"
-    input_folder = "output/landkreise"
-    input_file = "11000.csv"
+    input_folder = "output"
+    input_file = "cut-data.csv"
     prediction_days = 32
     test = False
     if len(sys.argv) > 1:
@@ -54,7 +54,7 @@ if __name__ == "__main__":
 
     # Build models
     rf_model = rf.Rf(data.copy(deep=True), prediction_days, {})
-    hw_model = hw.holtwinters(data, prediction_days)
+    hw_model = hw.holtwinters(data, prediction_days, smoothing_params={"smoothing_level": 0.89, "smoothing_trend": 0.0, "smoothing_seasonal": 0.0})
     sarima_model = s.Sarima(data, prediction_days)
 
     # Let each model make a prediction
@@ -62,9 +62,10 @@ if __name__ == "__main__":
     prediction_hw = hw_model.predict()
     prediction_sarima = sarima_model.predict()
     # Write Output
-    prediction_rf.to_csv("output/latest_random_forest.csv", index=False)
-    #write_file(prediction_hw, 'output/latest_holt_winter.csv')
-    prediction_sarima.to_csv("output/latest_sarima.csv", index=False)
+    prediction_rf.to_csv(os.path.join(output_folder, "latest_random_forest.csv"), index=False)
+    prediction_hw.to_csv(os.path.join(output_folder, "latest_holt_winter.csv"), index=False)
+    prediction_sarima.to_csv(os.path.join(output_folder, "latest_sarima.csv"), index=False)
+    # set symlink for last used history file
     if os.path.islink(os.path.join(output_folder, "latest_history.csv")):
         os.remove(os.path.join(output_folder, "latest_history.csv"))
     os.symlink(os.path.relpath(os.path.join(input_folder, input_file), output_folder), os.path.join(output_folder, "latest_history.csv"))
@@ -72,5 +73,9 @@ if __name__ == "__main__":
     # Calculate Errors if in a test scenario:
     if test:
         print("RMSE Random Forest: ", root_mean_squared_error(data_compare["occupancy"], prediction_rf["occupancy"]))
+        print("MAPE Random Forest: ", mean_absolute_percentage_error(data_compare["occupancy"], prediction_rf["occupancy"]))
         print("RMSE Sarima: ", root_mean_squared_error(data_compare["occupancy"], prediction_sarima["occupancy"]))
+        print("MAPE Sarima: ", mean_absolute_percentage_error(data_compare["occupancy"], prediction_sarima["occupancy"]))
         print("RMSE Holt-Winter: ", root_mean_squared_error(data_compare["occupancy"], prediction_hw["occupancy"]))
+        print("MAPE Holt-Winter: ", mean_absolute_percentage_error(data_compare["occupancy"], prediction_hw["occupancy"]))
+
