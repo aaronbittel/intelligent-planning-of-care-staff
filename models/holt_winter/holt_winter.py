@@ -11,7 +11,6 @@ from sklearn.metrics import (
 import pymannkendall as mk
 from scipy import stats
 
-
 DEFAULT_PARAMS = {
     "trend": "add",
     "damped_trend": False,
@@ -20,6 +19,11 @@ DEFAULT_PARAMS = {
     "initialization_method": "heuristic",
 }
 
+DEFAULT_SMOOTHING_PARAMS = {
+    "smoothing_level": 0.89, 
+    "smoothing_trend": 0.0, 
+    "smoothing_seasonal": 0.0
+}
 
 class holtwinters:
 

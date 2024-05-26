@@ -112,7 +112,7 @@
           "refId": "A",
           "schema": [
             {
-              "name": "dates",
+              "name": "date",
               "type": "time"
             },
             {

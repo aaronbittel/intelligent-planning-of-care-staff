@@ -19,7 +19,7 @@ def prepare_data(data):
 
 
 class Rf:
-    def __init__(self, data: pd.DataFrame, predict_range: int, rf_params: dict):
+    def __init__(self, data: pd.DataFrame, predict_range: int = 30, rf_params: dict = None):
         self.data = prepare_data(data)
         self.predict_range = predict_range
         self.reset_params()
