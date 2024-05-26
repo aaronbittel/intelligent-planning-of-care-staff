@@ -21,6 +21,7 @@ Windows
 ```console
 venv\Scripts\activate 
 ```
+
 Linux
 ```console
 . venv/bin/activate
@@ -74,9 +75,9 @@ Advanced (Optionale Konfiguration)
   - Modell-Auswahl
   - eigene Parameter Auswahl für jedes Modell
   - Verschiedene Ausführungsmöglichkeiten
-    - Forecast -> Tatsächliche Vorhersagenberechnung
-    - Test -> Vergleich Datensatz + Vorhersage
-    - Accurate -> Multiple Runs mit Teilen des Datensatzes um bestes der drei Modelle zu bestimmen
+    - Forecast → Tatsächliche Vorhersagenberechnung
+    - Test → Vergleich Datensatz + Vorhersage
+    - Accurate → Multiple Runs mit Teilen des Datensatzes um bestes der drei Modelle zu bestimmen
      
 **Forecast:**  
 Anzeige des Grafana Dashboards mit den Ergebnissen der Modelle, eingebunden als I-Frame.
