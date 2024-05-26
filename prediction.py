@@ -26,7 +26,6 @@ def read_in_csv(csv_file):
 
 def write_file(data, csv_file_path):
     """
-
     :param data: pd.Dataframe with occupancy and dates
     :param csv_file_path: where to save the data
     """

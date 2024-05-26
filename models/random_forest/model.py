@@ -12,9 +12,7 @@ from sklearn.metrics import (
 # In/Out:
 occupancy_source = "../../output/cut-data.csv"
 unix_timestamp = int(time.time())
-output_file = (
-    "../../output/random-forest/random-forest-%d.csv" % unix_timestamp
-)
+output_file = "../../output/random-forest/random-forest-%d.csv" % unix_timestamp
 # relevant for model
 target_days = 31
 rf_regressor_params = {
@@ -40,8 +38,8 @@ rf_regressor_params = {
 
 # Load CSV, set date as index
 data = pd.read_csv(occupancy_source)
-data["dates"] = pd.to_datetime(data["dates"], format="%Y-%m-%d")
-data.set_index("dates", inplace=True)
+data["date"] = pd.to_datetime(data["date"], format="%Y-%m-%d")
+data.set_index("date", inplace=True)
 data["target"] = data["occupancy"].astype(int)
 # Add Columns used as features
 data["day_of_year"] = data.index.dayofyear
@@ -90,12 +88,8 @@ for index in y_test.index:
 if out.endswith("\n"):
     out = out[:-1]
 
-rmse = root_mean_squared_error(
-    y_test.tail(target_days), future_features["predictions"]
-)
-mea = mean_absolute_error(
-    y_test.tail(target_days), future_features["predictions"]
-)
+rmse = root_mean_squared_error(y_test.tail(target_days), future_features["predictions"])
+mea = mean_absolute_error(y_test.tail(target_days), future_features["predictions"])
 mape = mean_absolute_percentage_error(
     y_test.tail(target_days), future_features["predictions"]
 )

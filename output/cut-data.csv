@@ -1,4 +1,4 @@
-index,dates,occupancy,admissions,discharges
+index,date,occupancy,admissions,discharges
 30,2017-05-01,139,28.0,18.0
 31,2017-05-02,135,14.0,17.0
 32,2017-05-03,133,15.0,17.0

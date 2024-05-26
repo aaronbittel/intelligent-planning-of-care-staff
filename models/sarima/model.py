@@ -10,8 +10,8 @@ def load_data() -> pd.DataFrame:
     data_file_path = os.path.join("output", "cut-data.csv")
     return pd.read_csv(
         data_file_path,
-        usecols=["dates", "occupancy"],
-        parse_dates=["dates"],
+        usecols=["date", "occupancy"],
+        parse_dates=["date"],
         date_format=r"%Y-%m-%d",
     )
 

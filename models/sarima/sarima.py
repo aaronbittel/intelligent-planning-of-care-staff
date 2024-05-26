@@ -50,6 +50,29 @@ class Sarima:
 
         model_fit = model.fit(disp=False)
 
+        prediction = model_fit.forecast(steps=self.target_days).astype(int)
+
+        return pd.DataFrame({"date": prediction_dates, "occupancy": prediction})
+
+    def test(self) -> pd.DataFrame:
+        train_data = self.data["occupancy"].iloc[-self.target_days :]
+        start_date = self.data["date"].iloc[-self.target_days]
+
+        prediction_dates = [
+            start_date + datetime.timedelta(days=i) for i in range(self.target_days)
+        ]
+
+        order = self.sarima_params["order"]
+        seasonal_order = self.sarima_params["seasonal_order"]
+
+        model = SARIMAX(
+            train_data,
+            order=order,
+            seasonal_order=seasonal_order,
+        )
+
+        model_fit = model.fit(disp=False)
+
         prediction = model_fit.forecast(steps=self.target_days)
         return pd.DataFrame({"date": prediction_dates, "occupancy": prediction})
 
@@ -64,3 +87,19 @@ class Sarima:
             )
             return False
         return True
+
+
+if __name__ == "__main__":
+    import os
+    import pandas as pd
+
+    data = pd.read_csv(
+        os.path.join("output", "cut-data.csv"),
+        usecols=["date", "occupancy"],
+        parse_dates=["date"],
+    )
+
+    data.rename(columns={"date": "date"}, inplace=True)
+
+    sarima = Sarima(data)
+    print(sarima.predict())

@@ -22,7 +22,6 @@ DEFAULT_PARAMS = {
 
 
 class holtwinters:
-
     def __init__(
         self,
         data: pd.DataFrame,
@@ -44,10 +43,9 @@ class holtwinters:
             )
 
     def predict(self):
-
-        model_hw = ExponentialSmoothing(
-            self.data["occupancy"], **self.params
-        ).fit(**self.smoothing_params, optimized=False)
+        model_hw = ExponentialSmoothing(self.data["occupancy"], **self.params).fit(
+            **self.smoothing_params, optimized=False
+        )
         prediction = model_hw.forecast(self.predict_range)
 
         print(self.smoothing_params)
@@ -56,7 +54,6 @@ class holtwinters:
         return prediction
 
     def optimal_smoothing_params(self, data: pd.DataFrame, predict_range):
-
         seasonal = self.test_for_seasonality(data)
         trend = self.test_for_trend(data)
 
@@ -90,9 +87,7 @@ class holtwinters:
                     )
                     predictions = model.forecast(predict_range)
 
-                    mape = mean_absolute_percentage_error(
-                        test_data, predictions
-                    )
+                    mape = mean_absolute_percentage_error(test_data, predictions)
 
                     if mape < best_score:
                         best_score = mape
@@ -160,18 +155,15 @@ class holtwinters:
 
 
 if __name__ == "__main__":
-
     health = pd.read_csv(
         "../../output/cut-data.csv",
-        usecols=["dates", "occupancy"],
-        index_col="dates",
+        usecols=["date", "occupancy"],
+        index_col="date",
         parse_dates=True,
     )
 
     unix_timestamp = int(time.time())
-    output_file = (
-        "../../output/holt_winter/holt-winter-%d.csv" % unix_timestamp
-    )
+    output_file = "../../output/holt_winter/holt-winter-%d.csv" % unix_timestamp
 
     target_days = 30
 
@@ -212,15 +204,14 @@ if __name__ == "__main__":
         f"Mean Absolute Percentage Error = {mean_absolute_percentage_error(test_health,test_predictions)}\n"
     )
 
-    out = out + "dates" + "," + "occupancy" + "\n"
+    out = out + "date" + "," + "occupancy" + "\n"
 
     for i in range(len(test_predictions)):
         out = (
             out
             + str(
                 (
-                    train_health.index[len(train_health) - 1]
-                    + pd.DateOffset(i + 1)
+                    train_health.index[len(train_health) - 1] + pd.DateOffset(i + 1)
                 ).date()
             )
             + ","

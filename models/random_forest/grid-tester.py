@@ -33,9 +33,9 @@ start = time.time()
 # Number of trees in random forest
 n_estimators = [int(x) for x in np.linspace(start=1, stop=2000, num=16)]
 # Number of features to consider at every split
-max_features = ['log2', 'sqrt']
+max_features = ["log2", "sqrt"]
 # Maximum number of levels in tree
-max_depth = [int(x) for x in np.linspace(1, 100, num = 2)]
+max_depth = [int(x) for x in np.linspace(1, 100, num=2)]
 max_depth.append(None)
 # Minimum number of samples required to split a node
 min_samples_split = [2, 3, 5, 7]
@@ -44,12 +44,14 @@ min_samples_leaf = [2, 3, 5, 7]
 # Method of selecting samples for training each tree
 bootstrap = [True, False]
 # Create the random grid
-grid = {'n_estimators': n_estimators,
-               'max_features': max_features,
-              # 'max_depth': max_depth,
-              # 'min_samples_split': min_samples_split,
-              # 'min_samples_leaf': min_samples_leaf,
-               'bootstrap': bootstrap}
+grid = {
+    "n_estimators": n_estimators,
+    "max_features": max_features,
+    # 'max_depth': max_depth,
+    # 'min_samples_split': min_samples_split,
+    # 'min_samples_leaf': min_samples_leaf,
+    "bootstrap": bootstrap,
+}
 # In/Out:
 occupancy_source = "../../output/cut-data.csv"
 # relevant for model
@@ -57,8 +59,8 @@ target_days = 40
 
 # Load CSV, set date as index
 data = pd.read_csv(occupancy_source)
-data["dates"] = pd.to_datetime(data["dates"], format="%Y-%m-%d")
-data.set_index("dates", inplace=True)
+data["date"] = pd.to_datetime(data["date"], format="%Y-%m-%d")
+data.set_index("date", inplace=True)
 data["target"] = data["occupancy"].astype(int)
 # Add Columns used as features
 data["day_of_year"] = data.index.dayofyear
@@ -98,13 +100,13 @@ for params in iterate_parameter_combinations(grid):
     rf_model = RandomForestRegressor(**params)
     rf_model.fit(x_train, y_train)
     future_predictions = rf_model.predict(future_features)
-    rmse = root_mean_squared_error( y_test.tail(target_days), future_predictions )
+    rmse = root_mean_squared_error(y_test.tail(target_days), future_predictions)
     if rmse < best_rmse:
         best_rmse = rmse
         print(rmse, params)
         good_runs.append(params)
-    count+=1
-    print(count, '/', runs)
+    count += 1
+    print(count, "/", runs)
 
 latest_date = data.index.max()
 prediction_dates = [

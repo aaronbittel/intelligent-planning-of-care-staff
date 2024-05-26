@@ -113,7 +113,7 @@
           "refId": "A",
           "schema": [
             {
-              "name": "dates",
+              "name": "date",
               "type": "time"
             }
           ],
@@ -186,7 +186,7 @@
               {
                 "dateFormat": "YYYY-MM-DD",
                 "destinationType": "time",
-                "targetField": "dates"
+                "targetField": "date"
               }
             ],
             "fields": {}
