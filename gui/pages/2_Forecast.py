@@ -247,7 +247,7 @@ with page_selector_container:
         )
     with select_weekly_col:
         select_weekly_btn = st.button(
-            "Weekly",
+            "Averages",
             type="primary"
             if st.session_state.selected_view == utils.SelectedView.WEEKLY_VIEW
             else "secondary",
