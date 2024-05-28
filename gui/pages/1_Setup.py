@@ -2,8 +2,6 @@ import os
 from collections import namedtuple
 
 import streamlit as st
-from create_random_forest import create_random_forest, get_random_forest_parameters
-from create_sarima import create_sarima_parameters, get_sarima_parameters
 from streamlit_extras.add_vertical_space import add_vertical_space
 
 import gui.st_utils as utils
@@ -182,6 +180,8 @@ add_vertical_space()
 
 calculation_spinner_placeholder = st.container()
 
+display_warning_messanges_placeholder = st.empty()
+
 
 ########################################################################################
 #   CREATING WIDGETS                                                                   #
@@ -246,7 +246,6 @@ with advanced_container:
             st.caption(
                 "**Accurate:** Utilizes TimeSeriesSplit for a more precise \
                   evaluation of model performance across the dataset.",
-                unsafe_allow_html=True,
             )
 
     with type_container:
@@ -265,7 +264,8 @@ with predict_btn_col:
 #   FUNCTIONALITY                                                                      #
 ########################################################################################
 
-if selected_models and st.session_state.selected_file:
+
+if selected_models:
     st.session_state.disable_btn = False
 else:
     st.session_state.disable_btn = True
@@ -285,13 +285,9 @@ if not selected_models:
         st.session_state.disable_btn = True
 
 
-if st.session_state.selected_file:
-    if not file:
-        with file_selected_placeholder.container():
-            st.info(f"**Selected File: {st.session_state.selected_file}**")
-else:
-    with file_warning_placeholder.container():
-        st.warning("Please select a file.", icon="⚠️")
+if not file:
+    with file_selected_placeholder.container():
+        st.info(f"**Selected File: {st.session_state.selected_file}**")
 
 
 if predict_btn:
@@ -313,12 +309,18 @@ if predict_btn:
         with st.spinner(spinner_text):
             try:
                 metrics = wrapper.call_wrapper(wrapper_params)
-                st.write(metrics)
                 update_model_metrics(metrics)
                 st.session_state.selected_view = utils.SelectedView.FORECAST_VIEW
+                st.session_state.df.to_csv(
+                    os.path.join("output", "latest_history.csv"), index=False
+                )
                 st.switch_page("pages/2_Forecast.py")
+            except ValueError as v:
+                st.warning("Missing Data Points in data", icon="⚠️")
+                with display_warning_messanges_placeholder.container():
+                    st.write(v)
             except Exception as e:
                 _reset_models_metrics()
                 st.warning("Something went wrong ...", icon="⚠️")
-                st.write(e)
-
+                with display_warning_messanges_placeholder.container():
+                    st.write(e)
