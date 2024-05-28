@@ -316,8 +316,14 @@ if predict_btn:
     spinner_col, spinner_text = set_spinner_text(selected_models)
     with spinner_col:
         with st.spinner(spinner_text):
-            metrics = wrapper.call_wrapper(wrapper_params)
-            if metrics:
+            try:
+                metrics = wrapper.call_wrapper(wrapper_params)
+                st.write(metrics)
                 update_model_metrics(metrics)
-    st.session_state.selected_view = utils.SelectedView.FORECAST_VIEW
-    st.switch_page("pages/2_Forecast.py")
+                st.session_state.selected_view = utils.SelectedView.FORECAST_VIEW
+                st.switch_page("pages/2_Forecast.py")
+            except Exception as e:
+                _reset_models_metrics()
+                st.warning("Something went wrong ...", icon="⚠️")
+                st.write(e)
+
