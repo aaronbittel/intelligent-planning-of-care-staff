@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 
 [project]
-name = "Projekt"
-version = "0.1.0"
+name = "Intelligent-planning-of-care-staff"
+version = "1.0.0"
 dependencies = [
     "streamlit",
     "streamlit-extras",
