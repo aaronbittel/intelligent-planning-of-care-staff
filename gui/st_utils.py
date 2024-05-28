@@ -344,7 +344,7 @@ def set_metrics_variable() -> None:
         st.session_state.metrics = {
             "Sarima": {"RMSE": None, "MAPE": None, "MAE": None},
             "Random-Forest": {"RMSE": None, "MAPE": None, "MAE": None},
-            "Holt-Winters": {"RMSE": None, "MAPE": None, "MAE": None},
+            "Holt-Winter": {"RMSE": None, "MAPE": None, "MAE": None},
         }
 
 

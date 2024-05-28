@@ -309,7 +309,7 @@ if st.session_state.selected_view == utils.SelectedView.FORECAST_VIEW:
         with rf_rmse_col:
             set_metric("Random-Forest", "RMSE")
         with hw_rmse_col:
-            set_metric("Holt-Winters", "RMSE")
+            set_metric("Holt-Winter", "RMSE")
 
     with mape_container.container():
         with s_mape_col:
@@ -317,7 +317,7 @@ if st.session_state.selected_view == utils.SelectedView.FORECAST_VIEW:
         with rf_mape_col:
             set_metric("Random-Forest", "MAPE")
         with hw_mape_col:
-            set_metric("Holt-Winters", "MAPE")
+            set_metric("Holt-Winter", "MAPE")
 
     with mae_container.container():
         with s_mae_col:
@@ -325,7 +325,7 @@ if st.session_state.selected_view == utils.SelectedView.FORECAST_VIEW:
         with rf_mae_col:
             set_metric("Random-Forest", "MAE")
         with hw_mae_col:
-            set_metric("Holt-Winters", "MAE")
+            set_metric("Holt-Winter", "MAE")
 
 
 if select_forecast_btn:

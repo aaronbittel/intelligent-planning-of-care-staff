@@ -8,10 +8,10 @@ from streamlit_extras.add_vertical_space import add_vertical_space
 
 import gui.st_utils as utils
 import models.wrapper as wrapper
-from gui.create_holt_winters import (
+from gui.create_holt_winter import (
     create_holt_winters,
-    get_holt_winters_parameters,
-    get_holt_winters_smoothing_pararms,
+    get_holt_winter_parameters,
+    get_holt_winter_smoothing_pararms,
 )
 
 ########################################################################################
@@ -28,7 +28,7 @@ param_creator = namedtuple("ParamCreator", ["create_params"])
 tab_contents = {
     "Sarima": param_creator(create_params=create_sarima_parameters),
     "Random Forest": param_creator(create_params=create_random_forest),
-    "Holt-Winters": param_creator(create_params=create_holt_winters),
+    "Holt-Winter": param_creator(create_params=create_holt_winters),
 }
 
 PREDICT_BTN_TEXT = "PREDICT"
@@ -43,13 +43,13 @@ def _reset_models_metrics() -> None:
     """
     Reset the metrics for different models to None in the session state.
 
-    This function resets the metrics for SARIMA, Random Forest, and Holt-Winters models
+    This function resets the metrics for SARIMA, Random Forest, and Holt-Winter models
     to None in the session state, allowing for a clean start or reset of model metrics.
     """
     st.session_state.metrics = {
         "Sarima": {"RMSE": None, "MAPE": None},
         "Random-Forest": {"RMSE": None, "MAPE": None},
-        "Holt-Winters": {"RMSE": None, "MAPE": None},
+        "Holt-Winter": {"RMSE": None, "MAPE": None},
     }
 
 
@@ -74,24 +74,20 @@ def get_model_parameters(selected_models: list[str]) -> tuple[dict, dict, dict, 
     Get the parameters for selected models.
 
     This function retrieves the parameters for the selected models, including SARIMA,
-    Holt-Winters, and Random Forest.
+    Holt-Winter, and Random Forest.
 
     :param selected_models: A list of selected models.
     :type selected_models: list[str]
-    :return: A tuple containing the parameters for SARIMA, Holt-Winters,
-             Holt-Winters smoothing, and Random Forest models.
+    :return: A tuple containing the parameters for SARIMA, Holt-Winter,
+             Holt-Winter smoothing, and Random Forest models.
     :rtype: tuple[dict, dict, dict, dict]
     """
     sarima_params = get_sarima_parameters() if "Sarima" in selected_models else {}
 
-    hw_params = (
-        get_holt_winters_parameters() if "Holt-Winters" in selected_models else {}
-    )
+    hw_params = get_holt_winter_parameters() if "Holt-Winter" in selected_models else {}
 
     hw_smoothing_params = (
-        get_holt_winters_smoothing_pararms()
-        if "Holt-Winters" in selected_models
-        else {}
+        get_holt_winter_smoothing_pararms() if "Holt-Winter" in selected_models else {}
     )
 
     rf_params = (
@@ -220,8 +216,8 @@ with advanced_container:
     with model_input_container:
         selected_models = utils.multiselect(
             "model",
-            options=["Sarima", "Random Forest", "Holt-Winters"],
-            default=["Sarima", "Random Forest", "Holt-Winters"],
+            options=["Sarima", "Random Forest", "Holt-Winter"],
+            default=["Sarima", "Random Forest", "Holt-Winter"],
         )
 
     with parameter_container:
