@@ -1,0 +1,12 @@
+apiVersion: 1
+
+datasources:
+  - name: CSV-latest_holt_winter
+    type: marcusolsson-csv-datasource
+    access: proxy
+    url: "/data/latest_holt_winter.csv"
+    isDefault: false
+    basicAuth: false
+    editable: true
+    jsonData:
+      storage: "local"

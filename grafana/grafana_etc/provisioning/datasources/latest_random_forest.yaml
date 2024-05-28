@@ -1,0 +1,12 @@
+apiVersion: 1
+
+datasources:
+  - name: CSV-latest_random_forest
+    type: marcusolsson-csv-datasource
+    access: proxy
+    url: "/data/latest_random_forest.csv"
+    isDefault: false
+    basicAuth: false
+    editable: true
+    jsonData:
+      storage: "local"

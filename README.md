@@ -1,30 +1,106 @@
-# Board
+# Schnellstart Anleitung
 
-## Neue Issues
+## Virtuelle Python Umgebung und Paketinstallation
 
-Neue Issues werden in der Liste "Issues" gesammelt, Wichtig ist hierbei dem Issue das Label Backlog zuzuweisen. 
+Virtuelle Umgebung erstellen:
+```console
+python -m venv venv
+```
+oder
+```console
+python3 -m venv venv
+```
 
-## Neuer Sprint
+* Virtuelles Environment aktivieren
 
-Ein Sprint geht immer 2 Wochen. Die Zugehörigen Issues für den Sprint werden im Issue Board von dem Reiter Backlog in den Reiter Open, mit drag an drop, bewegt
+MacOS
+```console
+.venv/bin/activate 
+```
+Windows
+```console
+venv\Scripts\activate 
+```
 
-## Verantwortung für Issues
+Linux
+```console
+. venv/bin/activate
+```
 
-Wer ein Issues bearbeitet, hinterlegt seinen Benutzer im Issues unter Assign. Hierfür kann man über das Issue Board auf das zutreffende Issue doppelklicken und unter Assign den Benutzer hinterlegen
+* Benötigte Pakete installieren
+```console
+pip install pyproject.toml
+```
 
-## Bearbeiten eines Issues
+## Grafana Docker starten
 
-Hierfür wird das Issue von Open nach in Progress bewegt. So lange dieses bearbeitet wird, bleibt es in diesem Reiter.
+```console
+cd grafana
+docker compose up -d
+```
 
-## Review eines Issues
+## GUI starten
 
-Sollte die Bearbeitung abgeschlossen sein, wird bspw. ein Merge Request erstellt und das Issue nach Review bewegt.
-Der Merge Request wird einer anderen Person zugeordnet, die alle Änderungen kontrolliert und gfs. Rücksprache mit der Bearbeitenden Person hält.
+```console
+streamlit run gui/Home.py
+```
 
-## Abschluss eines Issues
+## Einfache Vorhersage generieren
 
-Nach Abschluss der Review Prozessses wird das Issue auf done bewegt. 
+Falls Page nicht automatisch im Browser aufgerufen wird:  
+http://localhost:8501
 
-## Abschluss des Sprints
+- Auf der Startpage "Start" klicken
+- Im Setup auf "Predict" klicken
+- Grafana Login Daten:
+  - User: demo
+  - Passwort: test
 
-Der Scrum Master kontrolliert das Board und wählt alle Issues einzeln an und klickt auf close. Somit verschwinden die Issues vom Board und ein neuer Sprint kann beginnen
+
+# Anwendungsstruktur
+
+## GUI
+
+### Seiten 
+Der Folder gui enthält unsere streamlit Anwendung. Die Anwendung besteht aus 3 Pages:
+
+**Home:**  
+Startpage  
+
+**Setup:**  
+Möglichkeit zum Hochladen eines eigenen Datensatzes in CSV Format, andernfalls wird ein
+Beispiel-Datensatz verwendet.  
+
+Advanced (Optionale Konfiguration) 
+  - Modell-Auswahl
+  - eigene Parameter Auswahl für jedes Modell
+  - Verschiedene Ausführungsmöglichkeiten
+    - Forecast → Tatsächliche Vorhersagenberechnung
+    - Test → Vergleich Datensatz + Vorhersage
+    - Accurate → Multiple Runs mit Teilen des Datensatzes um bestes der drei Modelle zu bestimmen
+     
+**Forecast:**  
+Anzeige des Grafana Dashboards mit den Ergebnissen der Modelle, eingebunden als I-Frame.
+Falls ein Vergleich mit dem Datensatz möglich ist (Test/Accurate), wird der Root Mean Squared Error
+und der Mean Average Percentage Error mit ausgegeben.
+
+## Modelle
+
+Es wurden drei Modelle implementiert, SARIMA, Random Forest und Holt-Winters seasonal method. Jedes Modell hat seinen eigenen Ordner unter '*modelle/*'. 
+Alle Modelle benötigen Input im Format eines Pandas Dataframe mit den Spalten 'dates' und 'occupancy'.
+
+Die drei Modelle werden über das Script '*models/wrapper.py*' aufgerufen, dieses kann getestet werden via '*models/test_call_wrapper.py*'
+
+## Daten Visualisierung
+
+Zur Visualisierung der Daten wird ein Grafana Docker-Container verwendet. 
+Die Konfiguration erfolgt in der Datei '*grafana/docker-compose.yml*'. 
+
+Das in die GUI eingebundene Dashboard (mixed-data) zeigt vier Dateien an, die Daten auf denen die letzte Berechnung erstellt
+wurde und die Ergebnisse der drei Vorhersagemodelle:  
+- *output/latest_history.csv* 
+- *output/lastest_holt_winter.csv* 
+- *output/lastest_random_forest.csv*
+- *output/lastest_sarima.csv*
+
+Man kann das Dashboard direkt aufrufen, unter http://localhost:3000
