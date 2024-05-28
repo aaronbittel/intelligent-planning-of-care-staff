@@ -104,9 +104,58 @@ def create_weekly_figure() -> px.bar:
     )
     fig_weekly.update_layout(showlegend=False)
 
-    fig_weekly.update_yaxes(range=[max(weekly_data) * 0.7, max(weekly_data) * 1.1])
+    fig_weekly.update_yaxes(range=[0, max(weekly_data) * 1.1])
 
     return fig_weekly
+
+
+def create_monthly_figure() -> px.bar:
+    """
+    Creates a monthly occupancy figure using Plotly.
+
+    This function generates a bar chart representing the average occupancy per month.
+    The data is extracted from the DataFrame stored in `st.session_state.df`, which is
+    grouped by months.
+
+    :return: The generated bar chart showing average occupancy per month.
+    :rtype: px.Figure
+    """
+    df = st.session_state.df
+
+    df["Month"] = df["date"].dt.month
+
+    monthly_data = df.groupby("Month")["occupancy"].mean()
+
+    month_names = [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
+    ]
+    monthly_data.index = monthly_data.index.map(lambda x: month_names[x - 1])
+
+    fig_monthly = px.bar(
+        monthly_data,
+        y="occupancy",
+        x=monthly_data.index,
+        color=monthly_data.index,
+        color_discrete_map={month: "#FF4B4B" for month in month_names},
+        labels={"y": "Month", "x": "Occupancy"},
+        orientation="v",
+    )
+    fig_monthly.update_layout(showlegend=False)
+
+    fig_monthly.update_yaxes(range=[0, max(monthly_data) * 1.1])
+
+    return fig_monthly
 
 
 def convert_df() -> bytes:
@@ -173,8 +222,9 @@ if st.session_state.selected_view == utils.SelectedView.FORECAST_VIEW:
         download_btn_container = st.container()
 
 if st.session_state.selected_view == utils.SelectedView.WEEKLY_VIEW:
-    left_col, _ = st.columns(2)
+    left_col, right_col = st.columns(2)
     weekly_graph_container = left_col.container(border=True)
+    monthly_graph_container = right_col.container(border=True)
 
 
 ########################################################################################
@@ -236,6 +286,15 @@ if st.session_state.selected_view == utils.SelectedView.WEEKLY_VIEW:
 
         fig_weekly = create_weekly_figure()
         st.plotly_chart(fig_weekly, use_container_width=False)
+
+    with monthly_graph_container:
+        st.write(
+            "<h3 style='text-align:center'>Average Occupancy per Month</h3>",
+            unsafe_allow_html=True,
+        )
+        fig_weekly = create_monthly_figure()
+        st.plotly_chart(fig_weekly, use_container_width=False)
+
 
 
 ########################################################################################
