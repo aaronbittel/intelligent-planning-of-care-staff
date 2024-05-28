@@ -59,11 +59,45 @@ def get_best_performing_modelname() -> str:
     best_rmse_model = None
     lowest_rmse = float("inf")
     for model, metric in st.session_state.metrics.items():
-        if metric["RMSE"] < lowest_rmse:
+        if metric["RMSE"] is not None and metric["RMSE"] < lowest_rmse:
             lowest_rmse = metric["RMSE"]
             best_rmse_model = model
 
     return best_rmse_model.replace("-", "_").lower()
+
+
+def create_bar_chart(
+    data: pd.Series, x_labels: list[str], y_label: str, title: str
+) -> px.bar:
+    """
+    Helper function to create a bar chart using Plotly.
+
+    :param data: Data for the bar chart.
+    :type data: pd.Series
+    :param x_labels: Labels for the x-axis.
+    :type x_labels: list
+    :param y_label: Label for the y-axis.
+    :type y_label: str
+    :param title: Title of the chart.
+    :type title: str
+    :return: The generated bar chart.
+    :rtype: px.bar
+    """
+    data.index = data.index.map(lambda x: x_labels[x - 1] if isinstance(x, int) else x)
+
+    fig = px.bar(
+        data,
+        y=data.values,
+        x=data.index,
+        color=data.index,
+        color_discrete_map={label: "#FF4B4B" for label in x_labels},
+        labels={"x": y_label, "y": "Occupancy"},
+        orientation="v",
+        title=title,
+    )
+    fig.update_layout(showlegend=False)
+
+    return fig
 
 
 def create_weekly_figure() -> px.bar:
@@ -75,12 +109,11 @@ def create_weekly_figure() -> px.bar:
     grouped by weekdays.
 
     :return: The generated bar chart showing average occupancy per weekday.
-    :rtype: px.Figure
+    :rtype: px.bar
     """
     df = st.session_state.df
 
     df["Weekday"] = df["date"].dt.dayofweek
-
     weekly_data = df.groupby("Weekday")["occupancy"].mean()
 
     weekday_names = [
@@ -92,22 +125,10 @@ def create_weekly_figure() -> px.bar:
         "Saturday",
         "Sunday",
     ]
-    weekly_data.index = weekly_data.index.map(lambda x: weekday_names[x])
 
-    fig_weekly = px.bar(
-        weekly_data,
-        y="occupancy",
-        x=weekly_data.index,
-        color=weekly_data.index,
-        color_discrete_map={day: "#FF4B4B" for day in weekday_names},
-        labels={"y": "Weekday", "x": "Occupancy"},
-        orientation="v",
+    return create_bar_chart(
+        weekly_data, weekday_names, "Weekday", "Average Occupancy per Weekday"
     )
-    fig_weekly.update_layout(showlegend=False)
-
-    fig_weekly.update_yaxes(range=[0, max(weekly_data) * 1.1])
-
-    return fig_weekly
 
 
 def create_monthly_figure() -> px.bar:
@@ -119,12 +140,11 @@ def create_monthly_figure() -> px.bar:
     grouped by months.
 
     :return: The generated bar chart showing average occupancy per month.
-    :rtype: px.Figure
+    :rtype: px.bar
     """
     df = st.session_state.df
 
     df["Month"] = df["date"].dt.month
-
     monthly_data = df.groupby("Month")["occupancy"].mean()
 
     month_names = [
@@ -141,22 +161,10 @@ def create_monthly_figure() -> px.bar:
         "November",
         "December",
     ]
-    monthly_data.index = monthly_data.index.map(lambda x: month_names[x - 1])
 
-    fig_monthly = px.bar(
-        monthly_data,
-        y="occupancy",
-        x=monthly_data.index,
-        color=monthly_data.index,
-        color_discrete_map={month: "#FF4B4B" for month in month_names},
-        labels={"y": "Month", "x": "Occupancy"},
-        orientation="v",
+    return create_bar_chart(
+        monthly_data, month_names, "Month", "Average Occupancy per Month"
     )
-    fig_monthly.update_layout(showlegend=False)
-
-    fig_monthly.update_yaxes(range=[0, max(monthly_data) * 1.1])
-
-    return fig_monthly
 
 
 def convert_df() -> bytes:
