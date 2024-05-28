@@ -22,7 +22,7 @@ def create_holt_winters():
                 st.button("Seasonal Periods")
             with input_col:
                 utils.bool_selectbox("damped_trend", index=1)
-                utils.int_input("seasonal_periods", min_val=1, max_val=365, default=60)
+                utils.int_input("seasonal_periods", min_val=1, max_val=365, default=173)
         col3, col4, _, _ = st.columns([3, 2.5, 2, 2])
         with col3:
             st.button("Initialization Method")
@@ -36,14 +36,14 @@ def create_holt_winters():
                 st.button("Smoothing Level")
                 st.button("Smoothing Seasonal")
             with input_col:
-                utils.float_input("smoothing_level", default=0.89, max_val=0.98)
-                utils.float_input("smoothing_seasonal", max_val=0.98)
+                utils.float_input("smoothing_level", default=0.53, max_val=0.98)
+                utils.float_input("smoothing_seasonal", default=0.02, max_val=0.98)
         with col2:
             label_col, input_col = st.columns(2)
             with label_col:
                 st.button("Smoothing Trend")
             with input_col:
-                utils.float_input("smoothing_trend", max_val=0.98)
+                utils.float_input("smoothing_trend", default=0.01, max_val=0.98)
 
 
 def get_holt_winters_parameters():
