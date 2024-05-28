@@ -13,6 +13,8 @@ from gui.create_holt_winter import (
     get_holt_winter_parameters,
     get_holt_winter_smoothing_pararms,
 )
+from gui.create_random_forest import create_random_forest, get_random_forest_parameters
+from gui.create_sarima import create_sarima_parameters, get_sarima_parameters
 
 ########################################################################################
 #   SETTING VARIABLES                                                                  #
@@ -237,15 +239,12 @@ with advanced_container:
                     )
 
         with st.popover("Type Explanation"):
+            st.caption("**Forecast:** Predicts the upcoming days.")
             st.caption(
-                "<b>Forecast:</b> Predicts the upcoming days.", unsafe_allow_html=True
+                "**Test:** Evaluates the model's performance against actual data."
             )
             st.caption(
-                "<b>Test:</b> Evaluates the model's performance against actual data.",
-                unsafe_allow_html=True,
-            )
-            st.caption(
-                "<b>Accurate:</b> Utilizes TimeSeriesSplit for a more precise \
+                "**Accurate:** Utilizes TimeSeriesSplit for a more precise \
                   evaluation of model performance across the dataset.",
                 unsafe_allow_html=True,
             )

@@ -1,12 +1,13 @@
 import os
 
 import pandas as pd
+import plotly.express as px
 import streamlit as st
 import streamlit.components.v1 as components
 from streamlit_extras.add_vertical_space import add_vertical_space
 from streamlit_extras.metric_cards import style_metric_cards
+
 import gui.st_utils as utils
-import plotly.express as px
 
 ########################################################################################
 #   SETTING VARIABLES                                                                  #
@@ -247,7 +248,7 @@ with page_selector_container:
         )
     with select_weekly_col:
         select_weekly_btn = st.button(
-            "Averages",
+            "Occupancy Analysis",
             type="primary"
             if st.session_state.selected_view == utils.SelectedView.WEEKLY_VIEW
             else "secondary",
@@ -294,7 +295,6 @@ if st.session_state.selected_view == utils.SelectedView.WEEKLY_VIEW:
         )
         fig_weekly = create_monthly_figure()
         st.plotly_chart(fig_weekly, use_container_width=False)
-
 
 
 ########################################################################################

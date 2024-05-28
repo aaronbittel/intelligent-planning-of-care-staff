@@ -358,7 +358,7 @@ def call_wrapper(params):
                 prediction_hw=prediction_hw,
                 prediction_rf=prediction_rf,
             )
-        
+
             test_data, train_data = setup_test(df)
             (
                 rf_model,
@@ -408,7 +408,7 @@ def call_wrapper(params):
             )
             print(metrics)
             return metrics
-        
+
         case "accurate":
             (
                 rf_model,
