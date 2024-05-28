@@ -178,7 +178,7 @@ predict_btn_col = utils.center_text(PREDICT_BTN_TEXT)
 
 add_vertical_space()
 
-calculation_spinner_placeholder = st.container()
+calculation_spinner_placeholder = st.empty()
 
 display_warning_messanges_placeholder = st.empty()
 
@@ -254,11 +254,6 @@ with advanced_container:
         )
         st.session_state.selected_type = run_type.lower()
 
-with predict_btn_col:
-    predict_btn = st.button(
-        PREDICT_BTN_TEXT, disabled=st.session_state.disable_btn, type="primary"
-    )
-
 
 ########################################################################################
 #   FUNCTIONALITY                                                                      #
@@ -269,6 +264,8 @@ if selected_models:
     st.session_state.disable_btn = False
 else:
     st.session_state.disable_btn = True
+    with model_warning_container:
+        st.warning("Please choose a model.", icon="⚠️")
 
 
 if file:
@@ -277,50 +274,46 @@ if file:
         os.path.join("output", "latest_history.csv"), index=False
     )
     st.session_state.selected_file = file.name
-
-
-if not selected_models:
-    with model_warning_container:
-        st.warning("Please choose a model.", icon="⚠️")
-        st.session_state.disable_btn = True
-
-
-if not file:
+else:
     with file_selected_placeholder.container():
         st.info(f"**Selected File: {st.session_state.selected_file}**")
 
 
-if predict_btn:
-    sarima_params, hw_params, hw_smoothing_params, rf_params = get_model_parameters(
-        selected_models
-    )
+# Streamlit runs the script from top to bottom after every widget change.
+# We need to check if the button should be enabled or disabled first,
+# because after initialization the state of a button cannot change.
+with predict_btn_col:
+    if st.button(
+        PREDICT_BTN_TEXT, disabled=st.session_state.disable_btn, type="primary"
+    ):
+        sarima_params, hw_params, hw_smoothing_params, rf_params = get_model_parameters(
+            selected_models
+        )
 
-    wrapper_params = generate_wrapper_params()
+        wrapper_params = generate_wrapper_params()
 
-    forecast_days = (
-        st.session_state.days_to_predict
-        if st.session_state.selected_type == utils.SelectedType.FORECAST
-        else 0
-    )
-    utils.set_iframe_timestamps(forecast_days)
+        forecast_days = (
+            st.session_state.days_to_predict
+            if st.session_state.selected_type == utils.SelectedType.FORECAST
+            else 0
+        )
+        utils.set_iframe_timestamps(forecast_days)
 
-    spinner_col, spinner_text = set_spinner_text(selected_models)
-    with spinner_col:
-        with st.spinner(spinner_text):
-            try:
-                metrics = wrapper.call_wrapper(wrapper_params)
-                update_model_metrics(metrics)
-                st.session_state.selected_view = utils.SelectedView.FORECAST_VIEW
-                st.session_state.df.to_csv(
-                    os.path.join("output", "latest_history.csv"), index=False
-                )
-                st.switch_page("pages/2_Forecast.py")
-            except ValueError as v:
-                st.warning("Missing Data Points in data", icon="⚠️")
-                with display_warning_messanges_placeholder.container():
-                    st.write(v)
-            except Exception as e:
-                _reset_models_metrics()
-                st.warning("Something went wrong ...", icon="⚠️")
-                with display_warning_messanges_placeholder.container():
-                    st.write(e)
+        with calculation_spinner_placeholder.container():
+            spinner_col, spinner_text = set_spinner_text(selected_models)
+            with spinner_col:
+                with st.spinner(spinner_text):
+                    try:
+                        metrics = wrapper.call_wrapper(wrapper_params)
+                        update_model_metrics(metrics)
+                        st.session_state.selected_view = (
+                            utils.SelectedView.FORECAST_VIEW
+                        )
+                        st.session_state.df.to_csv(
+                            os.path.join("output", "latest_history.csv"), index=False
+                        )
+                        st.switch_page("pages/2_Forecast.py")
+                    except ValueError:
+                        st.warning("Missing Data Points in data", icon="⚠️")
+                    except Exception:
+                        st.warning("Something went wrong ...", icon="⚠️")
