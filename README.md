@@ -29,7 +29,7 @@ Linux
 
 * Benötigte Pakete installieren
 ```console
-pip install pyproject.toml
+pip install . 
 ```
 
 ## Grafana Docker starten
