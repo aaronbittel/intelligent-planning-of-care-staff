@@ -68,6 +68,10 @@ class SelectedType:
     ACCURATE = "accurate"
 
 
+DEFAULT_FILE = "hero_dmc_heart_institute_india.csv"
+DISPLAY_FILE_NAMES = {DEFAULT_FILE: "Hero DMC Heart Institute India"}
+
+
 def load_values() -> None:
     """
     Overwrite all widget values with the value before the reload.
@@ -350,7 +354,7 @@ def set_metrics_variable() -> None:
 
 def read_data(file: StringIO) -> pd.DataFrame:
     """
-    Reads data from an uploaded CSV file and returns a DataFrame.
+    Read data from an uploaded CSV file and returns a DataFrame.
 
     This function reads a CSV file uploaded via Streamlit's file_uploader, extracting
     the 'date' and 'occupancy' columns, and parses the 'date' column as datetime
@@ -370,13 +374,53 @@ def read_data(file: StringIO) -> pd.DataFrame:
 
 def set_df_variable() -> None:
     """
-    Sets the DataFrame in the session state.
+    Set the DataFrame in the session state.
 
     This function reads data from 'cut-data.csv' in the 'output' directory and sets
     it as the 'df' variable in the session state. The 'cut-data.csv' file is used
     as the default CSV file.
     """
-    set_session_state_variable("df", read_data(os.path.join("output", "cut-data.csv")))
+    set_session_state_variable("df", read_data(os.path.join("output", DEFAULT_FILE)))
+
+
+def update_file_name(filename: str) -> None:
+    """
+    Updates the selected file name and its display name in the session state.
+
+    This function assigns the given filename to the `selected_file` attribute
+    in the session state and generates a display name for the file, which is
+    then assigned to the `file_display_name` attribute in the session state.
+
+    :param filename: The name of the file to be set and displayed.
+    :type filename: str
+    """
+    st.session_state.selected_file = filename
+    st.session_state.file_display_name = create_display_name(filename)
+
+
+def create_display_name(file_name: str) -> str:
+    """
+    Create a display name from a CSV file name.
+
+    The method takes a file name, splits it into components by underscores, capitalizes
+    each component, and joins them back together with spaces. The file extension is
+    removed in the process.
+
+    :param file_name: The file name to be processed.
+        E.g., "hero_dmc_heart_institute_india.csv"
+    :type file_name: str
+    :return: A display name with capitalized words and no file extension.
+        E.g., "Hero Dmc Heart Institute India"
+    :rtype: str
+    """
+    if file_name in DISPLAY_FILE_NAMES.keys():
+        return DISPLAY_FILE_NAMES[file_name]
+    return " ".join(
+        map(
+            lambda s: s.capitalize(),
+            file_name.rpartition(".")[0].split("_"),
+        )
+    )
 
 
 def set_all_session_state_variables() -> None:
@@ -389,10 +433,10 @@ def set_all_session_state_variables() -> None:
     set_df_variable()
     set_session_state_variable("selected_view", SelectedView.FORECAST_VIEW)
     set_session_state_variable("show_selected_file", False)
-    set_session_state_variable("selected_file", "cut-data.csv")
+    set_session_state_variable("selected_file", DEFAULT_FILE)
+    set_session_state_variable("file_display_name", create_display_name(DEFAULT_FILE))
     set_session_state_variable("disable_btn", False)
     set_session_state_variable("selected_type", SelectedType.FORECAST)
-    set_session_state_variable("file_name", "cut-data.csv")
     set_session_state_variable("start_timestamp")
     set_session_state_variable("end_timestamp")
     set_metrics_variable()
@@ -456,7 +500,7 @@ def on_page_load() -> None:
 
 def center_text(text: str) -> st.columns:
     """
-    Centers a given text in a Streamlit application using a dynamic column layout.
+    Center a given text in a Streamlit application using a dynamic column layout.
 
     This function calculates the space required to center the text based on its length.
     It uses a simple linear formula to determine the column spacing and returns the

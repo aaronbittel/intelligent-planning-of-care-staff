@@ -205,12 +205,16 @@ def show_download_button() -> bool:
 
 page_link_container = st.container()
 
+
 page_selector_container = st.container()
 _, forecast_btn_col, select_weekly_col, _ = page_selector_container.columns(
     [3, 1, 1, 3]
 )
 
+
 st.divider()
+
+st.info(f"**Selected File: {st.session_state.file_display_name}**")
 
 if st.session_state.selected_view == utils.SelectedView.FORECAST_VIEW:
     forecast_text_container = st.container()

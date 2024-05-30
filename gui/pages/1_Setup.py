@@ -273,10 +273,12 @@ if file:
     st.session_state.df.to_csv(
         os.path.join("output", "latest_history.csv"), index=False
     )
-    st.session_state.selected_file = file.name
+    utils.update_file_name(file.name)
+
 else:
     with file_selected_placeholder.container():
-        st.info(f"**Selected File: {st.session_state.selected_file}**")
+        name = utils.create_display_name(st.session_state.selected_file)
+        st.info(f"**Selected File: {st.session_state.file_display_name}**")
 
 
 # Streamlit runs the script from top to bottom after every widget change.
