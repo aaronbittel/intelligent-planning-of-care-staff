@@ -1,0 +1,26 @@
+services:
+  grafana:
+    container_name: grafana
+    image: grafana/grafana-oss
+    restart: unless-stopped
+    environment:
+      - "GF_INSTALL_PLUGINS=marcusolsson-csv-datasource"
+      - "GF_SECURITY_ADMIN_USER=demo"
+      - "GF_SECURITY_ADMIN_PASSWORD=test"
+      - "GF_SECURITY_ALLOW_EMBEDDING=true"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./output:/data
+      - ./grafana/grafana_etc:/etc/grafana/
+  streamlit:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: streamlit_app
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./gui:/app/gui
+      - ./models:/app/models
+      - ./output:/app/output
