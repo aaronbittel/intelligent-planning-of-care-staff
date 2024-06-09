@@ -37,7 +37,7 @@ with logo_container:
 
 
 with main_text_container:
-    st.write("<h1 style='text-align:center'>Home</h1>", unsafe_allow_html=True)
+    st.write("<h1 style='text-align:center'>Intelligent planning of care staff</h1>", unsafe_allow_html=True)
     st.write(
         "<p style='text-align:center'>"
         "Welcome to our AI prediction tool for hospital occupancy. "
@@ -46,6 +46,11 @@ with main_text_container:
         "</p>",
         unsafe_allow_html=True,
     )
+
+    add_vertical_space()
+
+    st.caption("Students: Aaron Bittel, Florian Paul, Adrian Lebmeier, Van Phuc Nguyen, Farhan Riftantya, Alexander Valerian")
+    st.caption("Supervision: Prof. Dr.-Ing. Alexandra Teynor (THA), Julian Schanz (THA), Emily Schiller (XITASO), Felix Reichel (XITASO)")
 
 
 with start_btn_container:
