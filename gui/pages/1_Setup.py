@@ -1,4 +1,6 @@
 import os
+import pandas as pd
+import plotly.express as px
 from collections import namedtuple
 
 import streamlit as st
@@ -144,6 +146,107 @@ def set_spinner_text(selected_models: list[str]) -> tuple[st.columns, str]:
         return utils.center_text(spinner_text), spinner_text
 
 
+def create_bar_chart(
+    data: pd.Series, x_labels: list[str], y_label: str, title: str
+) -> px.bar:
+    """
+    Helper function to create a bar chart using Plotly.
+
+    :param data: Data for the bar chart.
+    :type data: pd.Series
+    :param x_labels: Labels for the x-axis.
+    :type x_labels: list
+    :param y_label: Label for the y-axis.
+    :type y_label: str
+    :param title: Title of the chart.
+    :type title: str
+    :return: The generated bar chart.
+    :rtype: px.bar
+    """
+    data.index = data.index.map(lambda x: x_labels[x - 1] if isinstance(x, int) else x)
+
+    fig = px.bar(
+        data,
+        y=data.values,
+        x=data.index,
+        color=data.index,
+        color_discrete_map={label: "#FF4B4B" for label in x_labels},
+        labels={"x": y_label, "y": "Occupancy"},
+        orientation="v",
+        title=title,
+    )
+    fig.update_layout(showlegend=False)
+
+    return fig
+
+
+def create_weekly_figure() -> px.bar:
+    """
+    Creates a weekly occupancy figure using Plotly.
+
+    This function generates a bar chart representing the average occupancy per weekday.
+    The data is extracted from the DataFrame stored in `st.session_state.df`, which is
+    grouped by weekdays.
+
+    :return: The generated bar chart showing average occupancy per weekday.
+    :rtype: px.bar
+    """
+    df = st.session_state.df
+
+    df["Weekday"] = df["date"].dt.dayofweek
+    weekly_data = df.groupby("Weekday")["occupancy"].mean()
+
+    weekday_names = [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday",
+    ]
+
+    return create_bar_chart(
+        weekly_data, weekday_names, "Weekday", "Average Occupancy per Weekday"
+    )
+
+
+def create_monthly_figure() -> px.bar:
+    """
+    Creates a monthly occupancy figure using Plotly.
+
+    This function generates a bar chart representing the average occupancy per month.
+    The data is extracted from the DataFrame stored in `st.session_state.df`, which is
+    grouped by months.
+
+    :return: The generated bar chart showing average occupancy per month.
+    :rtype: px.bar
+    """
+    df = st.session_state.df
+
+    df["Month"] = df["date"].dt.month
+    monthly_data = df.groupby("Month")["occupancy"].mean()
+
+    month_names = [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
+    ]
+
+    return create_bar_chart(
+        monthly_data, month_names, "Month", "Average Occupancy per Month"
+    )
+
+
 ########################################################################################
 #   PAGE STRUCTURE                                                                     #
 ########################################################################################
@@ -157,6 +260,7 @@ file_info_container = setup_container.container()
 file_warning_placeholder = file_info_container.empty()
 file_selected_placeholder = file_info_container.empty()
 
+occupancy_analysis_placeholder = setup_container.empty()
 days_to_predict_container = setup_container.container()
 
 st.divider()
@@ -258,6 +362,29 @@ with advanced_container:
 ########################################################################################
 #   FUNCTIONALITY                                                                      #
 ########################################################################################
+
+
+with occupancy_analysis_placeholder.container():
+    with st.expander("Occupancy Analysis"):
+        left_col, right_col = st.columns(2)
+        weekly_graph_container = left_col.container(border=True)
+        monthly_graph_container = right_col.container(border=True)
+        with weekly_graph_container:
+            st.write(
+                "<h3 style='text-align:center'>Average Occupancy per Weekday</h3>",
+                unsafe_allow_html=True,
+            )
+
+            fig_weekly = create_weekly_figure()
+            st.plotly_chart(fig_weekly, use_container_width=False)
+
+        with monthly_graph_container:
+            st.write(
+                "<h3 style='text-align:center'>Average Occupancy per Month</h3>",
+                unsafe_allow_html=True,
+            )
+            fig_weekly = create_monthly_figure()
+            st.plotly_chart(fig_weekly, use_container_width=False)
 
 
 if selected_models:

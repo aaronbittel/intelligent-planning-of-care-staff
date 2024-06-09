@@ -53,13 +53,6 @@ import pandas as pd
 import streamlit as st
 
 
-class SelectedView:
-    """Constants for different views."""
-
-    FORECAST_VIEW = "forecast_view"
-    WEEKLY_VIEW = "weekly_view"
-
-
 class SelectedType:
     """Constants for different types."""
 
@@ -431,7 +424,6 @@ def set_all_session_state_variables() -> None:
     application.
     """
     set_df_variable()
-    set_session_state_variable("selected_view", SelectedView.FORECAST_VIEW)
     set_session_state_variable("show_selected_file", False)
     set_session_state_variable("selected_file", DEFAULT_FILE)
     set_session_state_variable("file_display_name", create_display_name(DEFAULT_FILE))
