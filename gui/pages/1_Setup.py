@@ -284,8 +284,6 @@ add_vertical_space()
 
 calculation_spinner_placeholder = st.empty()
 
-display_warning_messanges_placeholder = st.empty()
-
 
 ########################################################################################
 #   CREATING WIDGETS                                                                   #
@@ -435,14 +433,11 @@ with predict_btn_col:
                     try:
                         metrics = wrapper.call_wrapper(wrapper_params)
                         update_model_metrics(metrics)
-                        st.session_state.selected_view = (
-                            utils.SelectedView.FORECAST_VIEW
-                        )
                         st.session_state.df.to_csv(
                             os.path.join("output", "latest_history.csv"), index=False
                         )
                         st.switch_page("pages/2_Forecast.py")
                     except ValueError:
                         st.warning("Missing Data Points in data", icon="⚠️")
-                    except Exception:
+                    except Exception as e:
                         st.warning("Something went wrong ...", icon="⚠️")
