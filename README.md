@@ -1,48 +1,8 @@
 # Schnellstart Anleitung
 
-## Virtuelle Python Umgebung und Paketinstallation
-
-Virtuelle Umgebung erstellen:
-```console
-python -m venv venv
-```
-oder
-```console
-python3 -m venv venv
-```
-
-* Virtuelles Environment aktivieren
-
-MacOS
-```console
-.venv/bin/activate 
-```
-Windows
-```console
-venv\Scripts\activate 
-```
-
-Linux
-```console
-. venv/bin/activate
-```
-
-* Benötigte Pakete installieren
-```console
-pip install . 
-```
-
-## Grafana Docker starten
-
-```console
-cd grafana
-docker compose up -d
-```
-
-## GUI starten
-
-```console
-streamlit run gui/Home.py
+Docker starten:
+```bash
+docker compose up
 ```
 
 ## Einfache Vorhersage generieren
@@ -104,3 +64,50 @@ wurde und die Ergebnisse der drei Vorhersagemodelle:
 - *output/lastest_sarima.csv*
 
 Man kann das Dashboard direkt aufrufen, unter http://localhost:3000
+
+# Streamlit (GUI) ohne docker starten
+
+## Virtuelle Python Umgebung und Paketinstallation
+
+Virtuelle Umgebung erstellen:
+```console
+python -m venv venv
+```
+oder
+```console
+python3 -m venv venv
+```
+
+* Virtuelles Environment aktivieren
+
+MacOS
+```console
+.venv/bin/activate 
+```
+Windows
+```console
+venv\Scripts\activate 
+```
+
+Linux
+```console
+. venv/bin/activate
+```
+
+* Benötigte Pakete installieren
+```console
+pip install . 
+```
+
+## Grafana Docker starten
+
+```console
+cd grafana
+docker compose up -d
+```
+
+## GUI starten
+
+```console
+streamlit run gui/Home.py
+```
