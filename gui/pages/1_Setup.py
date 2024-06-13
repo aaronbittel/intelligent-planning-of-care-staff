@@ -1,8 +1,8 @@
 import os
-import pandas as pd
-import plotly.express as px
 from collections import namedtuple
 
+import pandas as pd
+import plotly.express as px
 import streamlit as st
 from streamlit_extras.add_vertical_space import add_vertical_space
 
@@ -16,6 +16,7 @@ from gui.create_holt_winter import (
 from gui.create_random_forest import create_random_forest, get_random_forest_parameters
 from gui.create_sarima import create_sarima_parameters, get_sarima_parameters
 
+
 ########################################################################################
 #   SETTING VARIABLES                                                                  #
 ########################################################################################
@@ -23,7 +24,6 @@ from gui.create_sarima import create_sarima_parameters, get_sarima_parameters
 
 utils.on_page_load()
 utils.load_values()
-
 
 param_creator = namedtuple("ParamCreator", ["create_params"])
 
@@ -43,7 +43,7 @@ PREDICT_BTN_TEXT = "PREDICT"
 
 def _reset_models_metrics() -> None:
     """
-    Reset the metrics for different models to None in the session state.
+    Reset the metrics for all models to None in the session state.
 
     This function resets the metrics for SARIMA, Random Forest, and Holt-Winter models
     to None in the session state, allowing for a clean start or reset of model metrics.
@@ -57,13 +57,9 @@ def _reset_models_metrics() -> None:
 
 def update_model_metrics(models_metrics: dict[dict[str, float]]) -> None:
     """
-    Update the metrics for selected models in the session state.
+    Update metrics for all models with the newly calculated metrics from the wrapper.
 
-    This function first resets selected model metrics to None using the
-    _reset_models_metrics() private method. Then it updates the metrics for the selected
-    models in the session state with the provided metrics.
-
-    :param models_metrics: A dictionary containing the metrics for each selected model.
+    :param models_metrics: A dictionary containing the metrics for each model.
     :type models_metrics: dict[dict[str, float]]
     """
     _reset_models_metrics()
@@ -101,7 +97,7 @@ def get_model_parameters(selected_models: list[str]) -> tuple[dict, dict, dict, 
 
 def generate_wrapper_params() -> list[str]:
     """
-    Generate wrapper parameters for the model.
+    Generate wrapper parameters.
 
     This function generates wrapper parameters required for the wrapper script
     based on the selected file, days to predict, run type, and model parameters.
@@ -109,7 +105,7 @@ def generate_wrapper_params() -> list[str]:
     :return: A list of wrapper parameters.
     :rtype: list[str]
     """
-    wrapper_params = [
+    return [
         st.session_state.df,
         st.session_state.days_to_predict,
         str(run_type).lower(),
@@ -118,8 +114,6 @@ def generate_wrapper_params() -> list[str]:
         hw_smoothing_params,
         rf_params,
     ]
-
-    return wrapper_params
 
 
 def set_spinner_text(selected_models: list[str]) -> tuple[st.columns, str]:
@@ -140,10 +134,10 @@ def set_spinner_text(selected_models: list[str]) -> tuple[st.columns, str]:
     """
     if len(selected_models) == 1:
         spinner_text = f"Calculating {selected_models[0]} model"
-        return utils.center_text(spinner_text), spinner_text
+        return utils.center_col(spinner_text), spinner_text
     else:
         spinner_text = f"Calculating {', '.join(selected_models)} models"
-        return utils.center_text(spinner_text), spinner_text
+        return utils.center_col(spinner_text), spinner_text
 
 
 def create_bar_chart(
@@ -253,13 +247,11 @@ def create_monthly_figure() -> px.bar:
 
 
 setup_container = st.container(border=True)
-
 setup_title_container = setup_container.container()
 setup_file_container = setup_container.container()
 file_info_container = setup_container.container()
 file_warning_placeholder = file_info_container.empty()
 file_selected_placeholder = file_info_container.empty()
-
 occupancy_analysis_placeholder = setup_container.empty()
 days_to_predict_container = setup_container.container()
 
@@ -267,18 +259,16 @@ st.divider()
 add_vertical_space()
 
 advanced_container = st.expander("Advanced", expanded=False)
-
 model_container = advanced_container.container(border=True)
 model_text_container = model_container.container()
 model_input_container = model_container.container()
 model_warning_container = model_container.container()
-
 parameter_container = advanced_container.container()
 type_container = advanced_container.container(border=True)
 
 add_vertical_space()
 
-predict_btn_col = utils.center_text(PREDICT_BTN_TEXT)
+predict_btn_col = utils.center_col(PREDICT_BTN_TEXT)
 
 add_vertical_space()
 
@@ -346,8 +336,8 @@ with advanced_container:
                 "**Test:** Evaluates the model's performance against actual data."
             )
             st.caption(
-                "**Accurate:** Utilizes TimeSeriesSplit for a more precise \
-                  evaluation of model performance across the dataset.",
+                "**Accurate:** Utilizes TimeSeriesSplit for a more precise "
+                "evaluation of model performance across the dataset.",
             )
 
     with type_container:
@@ -362,53 +352,53 @@ with advanced_container:
 ########################################################################################
 
 
-with occupancy_analysis_placeholder.container():
-    with st.expander("Occupancy Analysis"):
-        left_col, right_col = st.columns(2)
-        weekly_graph_container = left_col.container(border=True)
-        monthly_graph_container = right_col.container(border=True)
-        with weekly_graph_container:
-            st.write(
-                "<h3 style='text-align:center'>Average Occupancy per Weekday</h3>",
-                unsafe_allow_html=True,
-            )
-
-            fig_weekly = create_weekly_figure()
-            st.plotly_chart(fig_weekly, use_container_width=False)
-
-        with monthly_graph_container:
-            st.write(
-                "<h3 style='text-align:center'>Average Occupancy per Month</h3>",
-                unsafe_allow_html=True,
-            )
-            fig_weekly = create_monthly_figure()
-            st.plotly_chart(fig_weekly, use_container_width=False)
-
-
-if selected_models:
-    st.session_state.disable_btn = False
-else:
-    st.session_state.disable_btn = True
-    with model_warning_container:
-        st.warning("Please choose a model.", icon="⚠️")
-
-
 if file:
-    st.session_state.df = utils.read_data(file)
-    st.session_state.df.to_csv(
-        os.path.join("output", "latest_history.csv"), index=False
-    )
-    utils.update_file_name(file.name)
+    try:
+        st.session_state.df = utils.read_data(file)
+        st.session_state.df.to_csv(
+            os.path.join("output", "latest_history.csv"), index=False
+        )
+        utils.update_file_name(file.name)
+        st.session_state.disable_btn = False
+    except ValueError:
+        file_warning_placeholder.container().warning(
+            "The csv file must have the columns 'date' and 'occupancy'", icon="⚠️"
+        )
+        st.session_state.disable_btn = True
+    except Exception:
+        pass
 
 else:
     with file_selected_placeholder.container():
         name = utils.create_display_name(st.session_state.selected_file)
         st.info(f"**Selected File: {st.session_state.file_display_name}**")
 
+with occupancy_analysis_placeholder.container():
+    with st.expander("Occupancy Analysis"):
+        weekly_col, monthly_col = st.columns(2)
+        weekly_graph_container = weekly_col.container(border=True)
+        monthly_graph_container = monthly_col.container(border=True)
+        with weekly_graph_container:
+            utils.write_center("Average Occupancy per Weekday", tag="h3")
 
-# Streamlit runs the script from top to bottom after every widget change.
-# We need to check if the button should be enabled or disabled first,
-# because after initialization the state of a button cannot change.
+            fig_weekly = create_weekly_figure()
+            st.plotly_chart(fig_weekly, use_container_width=False)
+
+        with monthly_graph_container:
+            utils.write_center("Average Occupancy per Month", tag="h3")
+            fig_weekly = create_monthly_figure()
+            st.plotly_chart(fig_weekly, use_container_width=False)
+
+
+if not st.session_state.disable_btn:
+    if selected_models:
+        st.session_state.disable_btn = False
+    else:
+        st.session_state.disable_btn = True
+        with model_warning_container:
+            st.warning("Please choose a model.", icon="⚠️")
+
+
 with predict_btn_col:
     if st.button(
         PREDICT_BTN_TEXT, disabled=st.session_state.disable_btn, type="primary"
@@ -432,12 +422,12 @@ with predict_btn_col:
                 with st.spinner(spinner_text):
                     try:
                         metrics = wrapper.call_wrapper(wrapper_params)
-                        update_model_metrics(metrics)
-                        st.session_state.df.to_csv(
-                            os.path.join("output", "latest_history.csv"), index=False
-                        )
-                        st.switch_page("pages/2_Forecast.py")
                     except ValueError:
                         st.warning("Missing Data Points in data", icon="⚠️")
-                    except Exception as e:
+                    except Exception:
                         st.warning("Something went wrong ...", icon="⚠️")
+                    update_model_metrics(metrics)
+                    st.session_state.df.to_csv(
+                        os.path.join("output", "latest_history.csv"), index=False
+                    )
+                    st.switch_page("pages/2_Forecast.py")

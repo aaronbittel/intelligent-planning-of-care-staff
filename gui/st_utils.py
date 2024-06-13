@@ -54,7 +54,7 @@ import streamlit as st
 
 
 class SelectedType:
-    """Constants for different types."""
+    """Constants for different prediction types."""
 
     FORECAST = "forecast"
     TEST = "test"
@@ -87,30 +87,6 @@ def save_value(key: str) -> None:
     :type key: str
     """
     st.session_state[f"_{key}"] = st.session_state[key]
-
-
-@st.cache_data
-def check_correct_csv_format(filename: str) -> bool:
-    """
-    Check if a CSV file has the correct format.
-
-    This function verifies that the CSV file contains the required columns
-    'dates' and 'occupancy', and that the 'dates' column can be parsed as dates.
-
-    :param filename: The name of the CSV file to check.
-    :type filename: str
-    :return: True if the CSV file has the correct format, False otherwise.
-    :rtype: bool
-    """
-    try:
-        pd.read_csv(
-            os.path.join("output", filename),
-            usecols=["date", "occupancy"],
-            parse_dates=["date"],
-        )
-        return True
-    except ValueError:
-        return False
 
 
 def int_input(
@@ -486,11 +462,11 @@ def on_page_load() -> None:
 
     :return: None
     """
-    st.set_page_config(layout="wide", initial_sidebar_state="expanded")
+    st.set_page_config(layout="wide", initial_sidebar_state="collapsed")
     set_all_session_state_variables()
 
 
-def center_text(text: str) -> st.columns:
+def center_col(text: str) -> st.columns:
     """
     Center a given text in a Streamlit application using a dynamic column layout.
 
@@ -508,6 +484,13 @@ def center_text(text: str) -> st.columns:
     if column_space <= 0:
         column_space = 1
     return st.columns([1, column_space, 2, 1, 1])[2]
+
+
+def write_center(text: str, tag: str = "h1") -> None:
+    st.write(
+        f"<{tag} style='text-align:center'>{text}</{tag}>",
+        unsafe_allow_html=True,
+    )
 
 
 def center_button() -> None:

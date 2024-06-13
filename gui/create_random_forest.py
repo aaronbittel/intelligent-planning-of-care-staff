@@ -6,6 +6,15 @@ utils.load_values()
 
 
 def create_random_forest():
+    """
+    Create the GUI for configuring Random Forest parameters.
+
+    This function sets up the Streamlit container with various columns and buttons
+    to allow the user to configure the parameters for the Random Forest model.
+    It includes options for n_estimators, max_depth, min_samples_leaf, max_features,
+    min_impurity_decrease, random_state, warm_start, max_samples, criterion,
+    min_samples_split, min_weight_fraction_leaf, max_leaf_nodes, bootstrap, and ccp_alpha.
+    """
     with st.container(border=True):
         col1, col2 = st.columns(2)
         with col1:
@@ -22,7 +31,7 @@ def create_random_forest():
                 utils.int_input("n_estimators", default=35)
                 utils.int_input("max_depth", default=6)
                 utils.int_input("min_samples_leaf", default=2)
-                utils.selectbox("max_features", ["log2","sqrt",1,2,3])
+                utils.selectbox("max_features", ["log2", "sqrt", 1, 2, 3])
                 utils.float_input("min_impurity_decrease", default=0.0)
                 utils.selectbox("random_state", ["True", "False"])
                 utils.bool_selectbox("warm_start")
@@ -37,16 +46,32 @@ def create_random_forest():
                 st.button("bootstrap")
                 st.button("ccp_alpha")
             with input_col:
-                utils.selectbox("max_samples", options=[None,0.1,0.2,0.5,0.8,1.0], index=0)
-                utils.selectbox("criterion", ["squarred_error", "absolute_error", "friedman_mse", "poisson"])
+                utils.selectbox(
+                    "max_samples", options=[None, 0.1, 0.2, 0.5, 0.8, 1.0], index=0
+                )
+                utils.selectbox(
+                    "criterion",
+                    ["squared_error", "absolute_error", "friedman_mse", "poisson"],
+                )
                 utils.int_input("min_samples_split", default=2)
                 utils.float_input("min_weight_fraction_leaf", 0.0)
-                utils.selectbox("max_leaf_nodes", [None,1,2,3,4,5,10,15,20], index=0)
+                utils.selectbox(
+                    "max_leaf_nodes", [None, 1, 2, 3, 4, 5, 10, 15, 20], index=0
+                )
                 utils.bool_selectbox("bootstrap")
                 utils.float_input("ccp_alpha", default=0.0)
 
 
-def get_random_forest_parameters():
+def get_random_forest_parameters() -> dict[str, int | str | float]:
+    """
+    Retrieve the configured Random Forest model parameters from session state.
+
+    This function accesses the Streamlit session state to get the current values
+    of the Random Forest model parameters configured by the user.
+
+    :return: A dictionary containing the Random Forest model parameters.
+    :rtype: dict[str, int | str | float]
+    """
     return {
         "n_estimators": st.session_state.n_estimators,
         "criterion": st.session_state.criterion,

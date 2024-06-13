@@ -6,6 +6,15 @@ utils.load_values()
 
 
 def create_sarima_parameters():
+    """
+    Create the GUI for configuring SARIMA parameters.
+
+    This function sets up the Streamlit container with various columns and buttons
+    to allow the user to configure the parameters for the SARIMA model.
+    It includes options for trend autoregression order (p), seasonal autoregressive
+    order (P), seasonal period (m), trend difference order (d), seasonal difference
+    order (D), trend moving average order (q), and seasonal moving average order (Q).
+    """
     with st.container(border=True):
         col1, col2, col3 = st.columns(3)
         with col1:
@@ -26,8 +35,8 @@ def create_sarima_parameters():
                 st.button("d", help="Trend difference order")
                 st.button("D", help="Seasonal difference order")
             with input_col:
-                utils.int_input("d")
-                utils.int_input("D")
+                utils.int_input("d", max_val=2)
+                utils.int_input("D", max_val=2)
         with col3:
             label_col, input_col = st.columns([1, 3])
             with label_col:
@@ -38,7 +47,16 @@ def create_sarima_parameters():
                 utils.int_input("Q", default=2)
 
 
-def get_sarima_parameters():
+def get_sarima_parameters() -> dict[str, int]:
+    """
+    Retrieve the configured SARIMA model parameters from session state.
+
+    This function accesses the Streamlit session state to get the current values
+    of the SARIMA model parameters configured by the user.
+
+    :return: A dictionary containing the SARIMA model parameters.
+    :rtype: dict[str, int]
+    """
     return {
         "order": (st.session_state.p, st.session_state.d, st.session_state.q),
         "seasonal_order": (

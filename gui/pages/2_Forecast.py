@@ -1,7 +1,6 @@
 import os
 
 import pandas as pd
-import plotly.express as px
 import streamlit as st
 import streamlit.components.v1 as components
 from streamlit_extras.add_vertical_space import add_vertical_space
@@ -9,13 +8,14 @@ from streamlit_extras.metric_cards import style_metric_cards
 
 import gui.st_utils as utils
 
+
 ########################################################################################
 #   SETTING VARIABLES                                                                  #
 ########################################################################################
 
+
 utils.on_page_load()
 utils.load_values()
-
 
 iframe = utils.create_iframe_link()
 
@@ -66,13 +66,16 @@ def get_best_performing_modelname() -> str:
     return best_rmse_model.replace("-", "_").lower()
 
 
-def convert_df() -> bytes:
+def export_best_rmse_csv(filename_best_rmse: str) -> bytes:
     """
-    Converts the DataFrame to a CSV file and encodes it in UTF-8.
+    Export the DataFrame of the best RMSE model to a CSV file encoded in UTF-8.
 
-    This function reads a CSV file from the 'output' directory based on the filename of
-    the model with the best RMSE, and converts it to a CSV file encoded in UTF-8.
+    This function reads a CSV file from the 'output' directory based on the provided
+    filename of the model with the best RMSE, and converts it to a CSV file encoded in
+    UTF-8.
 
+    :param filename_best_rmse: The filename indicating the best RMSE.
+    :type filename_best_rmse: str
     :return: The CSV file encoded in UTF-8.
     :rtype: bytes
     """
@@ -103,7 +106,6 @@ def show_download_button() -> bool:
 
 
 page_link_container = st.container()
-
 
 st.info(f"**Selected File: {st.session_state.file_display_name}**")
 
@@ -144,7 +146,7 @@ with grafana_container:
 if show_download_button():
     filename_best_rmse = get_best_performing_modelname()
 
-    csv_bytes = convert_df()
+    csv_bytes = export_best_rmse_csv(filename_best_rmse)
     with download_btn_container:
         download_btn = st.download_button(
             label="Download CSV",
