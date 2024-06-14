@@ -1,4 +1,4 @@
-dates,bundesland_id,bundesland_name,landkreis_id,landkreis_name,anzahl_standorte,anzahl_meldebereiche,faelle_covid_aktuell,faelle_covid_aktuell_invasiv_beatmet,intensivbetten_frei,occupancy,intensivbetten_belegt_erwachsen,intensivbetten_frei_erwachsen
+date,bundesland_id,bundesland_name,landkreis_id,landkreis_name,anzahl_standorte,anzahl_meldebereiche,faelle_covid_aktuell,faelle_covid_aktuell_invasiv_beatmet,intensivbetten_frei,occupancy,intensivbetten_belegt_erwachsen,intensivbetten_frei_erwachsen
 2020-04-24,09,Bayern,09777,LK Ostallgäu,2,2,6,4,8,13,13,8
 2020-04-25,09,Bayern,09777,LK Ostallgäu,2,2,5,4,9,10,10,9
 2020-04-26,09,Bayern,09777,LK Ostallgäu,2,2,5,4,9,9,9,9

@@ -5,6 +5,7 @@ from streamlit_extras.add_vertical_space import add_vertical_space
 
 import gui.st_utils as utils
 
+
 ########################################################################################
 #   SETTING VARIABLES                                                                  #
 ########################################################################################
@@ -37,14 +38,23 @@ with logo_container:
 
 
 with main_text_container:
-    st.write("<h1 style='text-align:center'>Home</h1>", unsafe_allow_html=True)
-    st.write(
-        "<p style='text-align:center'>"
+    utils.write_center("Intelligent planning of care staff")
+    utils.write_center(
         "Welcome to our AI prediction tool for hospital occupancy. "
         "With advanced algorithms, we provide accurate forecasts to "
-        "help streamline resource management and improve patient care."
-        "</p>",
-        unsafe_allow_html=True,
+        "help streamline resource management and improve patient care.",
+        tag="p",
+    )
+
+    add_vertical_space()
+
+    st.caption(
+        "Students: Aaron Bittel, Florian Paul, Adrian Lebmeier, Van Phuc Nguyen, "
+        "Farhan Riftantya, Alexander Valerian"
+    )
+    st.caption(
+        "Supervision: Prof. Dr.-Ing. Alexandra Teynor (THA), Julian Schanz (THA), "
+        "Emily Schiller (XITASO), Felix Reichel (XITASO)"
     )
 
 

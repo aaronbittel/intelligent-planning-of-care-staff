@@ -1,18 +1,21 @@
 import os
 from collections import namedtuple
 
+import pandas as pd
+import plotly.express as px
 import streamlit as st
-from create_random_forest import create_random_forest, get_random_forest_parameters
-from create_sarima import create_sarima_parameters, get_sarima_parameters
 from streamlit_extras.add_vertical_space import add_vertical_space
 
 import gui.st_utils as utils
 import models.wrapper as wrapper
-from gui.create_holt_winters import (
+from gui.create_holt_winter import (
     create_holt_winters,
-    get_holt_winters_parameters,
-    get_holt_winters_smoothing_pararms,
+    get_holt_winter_parameters,
+    get_holt_winter_smoothing_pararms,
 )
+from gui.create_random_forest import create_random_forest, get_random_forest_parameters
+from gui.create_sarima import create_sarima_parameters, get_sarima_parameters
+
 
 ########################################################################################
 #   SETTING VARIABLES                                                                  #
@@ -22,13 +25,12 @@ from gui.create_holt_winters import (
 utils.on_page_load()
 utils.load_values()
 
-
 param_creator = namedtuple("ParamCreator", ["create_params"])
 
 tab_contents = {
     "Sarima": param_creator(create_params=create_sarima_parameters),
     "Random Forest": param_creator(create_params=create_random_forest),
-    "Holt-Winters": param_creator(create_params=create_holt_winters),
+    "Holt-Winter": param_creator(create_params=create_holt_winters),
 }
 
 PREDICT_BTN_TEXT = "PREDICT"
@@ -41,27 +43,23 @@ PREDICT_BTN_TEXT = "PREDICT"
 
 def _reset_models_metrics() -> None:
     """
-    Reset the metrics for different models to None in the session state.
+    Reset the metrics for all models to None in the session state.
 
-    This function resets the metrics for SARIMA, Random Forest, and Holt-Winters models
+    This function resets the metrics for SARIMA, Random Forest, and Holt-Winter models
     to None in the session state, allowing for a clean start or reset of model metrics.
     """
     st.session_state.metrics = {
         "Sarima": {"RMSE": None, "MAPE": None},
         "Random-Forest": {"RMSE": None, "MAPE": None},
-        "Holt-Winters": {"RMSE": None, "MAPE": None},
+        "Holt-Winter": {"RMSE": None, "MAPE": None},
     }
 
 
 def update_model_metrics(models_metrics: dict[dict[str, float]]) -> None:
     """
-    Update the metrics for selected models in the session state.
+    Update metrics for all models with the newly calculated metrics from the wrapper.
 
-    This function first resets selected model metrics to None using the
-    _reset_models_metrics() private method. Then it updates the metrics for the selected
-    models in the session state with the provided metrics.
-
-    :param models_metrics: A dictionary containing the metrics for each selected model.
+    :param models_metrics: A dictionary containing the metrics for each model.
     :type models_metrics: dict[dict[str, float]]
     """
     _reset_models_metrics()
@@ -74,24 +72,20 @@ def get_model_parameters(selected_models: list[str]) -> tuple[dict, dict, dict, 
     Get the parameters for selected models.
 
     This function retrieves the parameters for the selected models, including SARIMA,
-    Holt-Winters, and Random Forest.
+    Holt-Winter, and Random Forest.
 
     :param selected_models: A list of selected models.
     :type selected_models: list[str]
-    :return: A tuple containing the parameters for SARIMA, Holt-Winters,
-             Holt-Winters smoothing, and Random Forest models.
+    :return: A tuple containing the parameters for SARIMA, Holt-Winter,
+             Holt-Winter smoothing, and Random Forest models.
     :rtype: tuple[dict, dict, dict, dict]
     """
     sarima_params = get_sarima_parameters() if "Sarima" in selected_models else {}
 
-    hw_params = (
-        get_holt_winters_parameters() if "Holt-Winters" in selected_models else {}
-    )
+    hw_params = get_holt_winter_parameters() if "Holt-Winter" in selected_models else {}
 
     hw_smoothing_params = (
-        get_holt_winters_smoothing_pararms()
-        if "Holt-Winters" in selected_models
-        else {}
+        get_holt_winter_smoothing_pararms() if "Holt-Winter" in selected_models else {}
     )
 
     rf_params = (
@@ -103,7 +97,7 @@ def get_model_parameters(selected_models: list[str]) -> tuple[dict, dict, dict, 
 
 def generate_wrapper_params() -> list[str]:
     """
-    Generate wrapper parameters for the model.
+    Generate wrapper parameters.
 
     This function generates wrapper parameters required for the wrapper script
     based on the selected file, days to predict, run type, and model parameters.
@@ -111,7 +105,7 @@ def generate_wrapper_params() -> list[str]:
     :return: A list of wrapper parameters.
     :rtype: list[str]
     """
-    wrapper_params = [
+    return [
         st.session_state.df,
         st.session_state.days_to_predict,
         str(run_type).lower(),
@@ -120,8 +114,6 @@ def generate_wrapper_params() -> list[str]:
         hw_smoothing_params,
         rf_params,
     ]
-
-    return wrapper_params
 
 
 def set_spinner_text(selected_models: list[str]) -> tuple[st.columns, str]:
@@ -142,10 +134,111 @@ def set_spinner_text(selected_models: list[str]) -> tuple[st.columns, str]:
     """
     if len(selected_models) == 1:
         spinner_text = f"Calculating {selected_models[0]} model"
-        return utils.center_text(spinner_text), spinner_text
+        return utils.center_col(spinner_text), spinner_text
     else:
         spinner_text = f"Calculating {', '.join(selected_models)} models"
-        return utils.center_text(spinner_text), spinner_text
+        return utils.center_col(spinner_text), spinner_text
+
+
+def create_bar_chart(
+    data: pd.Series, x_labels: list[str], y_label: str, title: str
+) -> px.bar:
+    """
+    Helper function to create a bar chart using Plotly.
+
+    :param data: Data for the bar chart.
+    :type data: pd.Series
+    :param x_labels: Labels for the x-axis.
+    :type x_labels: list
+    :param y_label: Label for the y-axis.
+    :type y_label: str
+    :param title: Title of the chart.
+    :type title: str
+    :return: The generated bar chart.
+    :rtype: px.bar
+    """
+    data.index = data.index.map(lambda x: x_labels[x - 1] if isinstance(x, int) else x)
+
+    fig = px.bar(
+        data,
+        y=data.values,
+        x=data.index,
+        color=data.index,
+        color_discrete_map={label: "#FF4B4B" for label in x_labels},
+        labels={"x": y_label, "y": "Occupancy"},
+        orientation="v",
+        title=title,
+    )
+    fig.update_layout(showlegend=False)
+
+    return fig
+
+
+def create_weekly_figure() -> px.bar:
+    """
+    Creates a weekly occupancy figure using Plotly.
+
+    This function generates a bar chart representing the average occupancy per weekday.
+    The data is extracted from the DataFrame stored in `st.session_state.df`, which is
+    grouped by weekdays.
+
+    :return: The generated bar chart showing average occupancy per weekday.
+    :rtype: px.bar
+    """
+    df = st.session_state.df
+
+    df["Weekday"] = df["date"].dt.dayofweek
+    weekly_data = df.groupby("Weekday")["occupancy"].mean()
+
+    weekday_names = [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday",
+    ]
+
+    return create_bar_chart(
+        weekly_data, weekday_names, "Weekday", "Average Occupancy per Weekday"
+    )
+
+
+def create_monthly_figure() -> px.bar:
+    """
+    Creates a monthly occupancy figure using Plotly.
+
+    This function generates a bar chart representing the average occupancy per month.
+    The data is extracted from the DataFrame stored in `st.session_state.df`, which is
+    grouped by months.
+
+    :return: The generated bar chart showing average occupancy per month.
+    :rtype: px.bar
+    """
+    df = st.session_state.df
+
+    df["Month"] = df["date"].dt.month
+    monthly_data = df.groupby("Month")["occupancy"].mean()
+
+    month_names = [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
+    ]
+
+    return create_bar_chart(
+        monthly_data, month_names, "Month", "Average Occupancy per Month"
+    )
 
 
 ########################################################################################
@@ -154,35 +247,32 @@ def set_spinner_text(selected_models: list[str]) -> tuple[st.columns, str]:
 
 
 setup_container = st.container(border=True)
-
 setup_title_container = setup_container.container()
 setup_file_container = setup_container.container()
 file_info_container = setup_container.container()
 file_warning_placeholder = file_info_container.empty()
 file_selected_placeholder = file_info_container.empty()
-
+occupancy_analysis_placeholder = setup_container.empty()
 days_to_predict_container = setup_container.container()
 
 st.divider()
 add_vertical_space()
 
 advanced_container = st.expander("Advanced", expanded=False)
-
 model_container = advanced_container.container(border=True)
 model_text_container = model_container.container()
 model_input_container = model_container.container()
 model_warning_container = model_container.container()
-
 parameter_container = advanced_container.container()
 type_container = advanced_container.container(border=True)
 
 add_vertical_space()
 
-predict_btn_col = utils.center_text(PREDICT_BTN_TEXT)
+predict_btn_col = utils.center_col(PREDICT_BTN_TEXT)
 
 add_vertical_space()
 
-calculation_spinner_placeholder = st.container()
+calculation_spinner_placeholder = st.empty()
 
 
 ########################################################################################
@@ -220,8 +310,8 @@ with advanced_container:
     with model_input_container:
         selected_models = utils.multiselect(
             "model",
-            options=["Sarima", "Random Forest", "Holt-Winters"],
-            default=["Sarima", "Random Forest", "Holt-Winters"],
+            options=["Sarima", "Random Forest", "Holt-Winter"],
+            default=["Sarima", "Random Forest", "Holt-Winter"],
         )
 
     with parameter_container:
@@ -241,17 +331,13 @@ with advanced_container:
                     )
 
         with st.popover("Type Explanation"):
+            st.caption("**Forecast:** Predicts the upcoming days.")
             st.caption(
-                "<b>Forecast:</b> Predicts the upcoming days.", unsafe_allow_html=True
+                "**Test:** Evaluates the model's performance against actual data."
             )
             st.caption(
-                "<b>Test:</b> Evaluates the model's performance against actual data.",
-                unsafe_allow_html=True,
-            )
-            st.caption(
-                "<b>Accurate:</b> Utilizes TimeSeriesSplit for a more precise \
-                  evaluation of model performance across the dataset.",
-                unsafe_allow_html=True,
+                "**Accurate:** Utilizes TimeSeriesSplit for a more precise "
+                "evaluation of model performance across the dataset.",
             )
 
     with type_container:
@@ -260,64 +346,88 @@ with advanced_container:
         )
         st.session_state.selected_type = run_type.lower()
 
-with predict_btn_col:
-    predict_btn = st.button(
-        PREDICT_BTN_TEXT, disabled=st.session_state.disable_btn, type="primary"
-    )
-
 
 ########################################################################################
 #   FUNCTIONALITY                                                                      #
 ########################################################################################
 
-if selected_models and st.session_state.selected_file:
-    st.session_state.disable_btn = False
-else:
-    st.session_state.disable_btn = True
-
 
 if file:
-    st.session_state.df = utils.read_data(file)
-    st.session_state.df.to_csv(
-        os.path.join("output", "latest_history.csv"), index=False
-    )
-    st.session_state.selected_file = file.name
-
-
-if not selected_models:
-    with model_warning_container:
-        st.warning("Please choose a model.", icon="⚠️")
+    try:
+        st.session_state.df = utils.read_data(file)
+        st.session_state.df.to_csv(
+            os.path.join("output", "latest_history.csv"), index=False
+        )
+        utils.update_file_name(file.name)
+        st.session_state.disable_btn = False
+    except ValueError:
+        file_warning_placeholder.container().warning(
+            "The csv file must have the columns 'date' and 'occupancy'", icon="⚠️"
+        )
         st.session_state.disable_btn = True
+    except Exception:
+        pass
 
-
-if st.session_state.selected_file:
-    if not file:
-        with file_selected_placeholder.container():
-            st.info(f"**Selected File: {st.session_state.selected_file}**")
 else:
-    with file_warning_placeholder.container():
-        st.warning("Please select a file.", icon="⚠️")
+    with file_selected_placeholder.container():
+        name = utils.create_display_name(st.session_state.selected_file)
+        st.info(f"**Selected File: {st.session_state.file_display_name}**")
+
+with occupancy_analysis_placeholder.container():
+    with st.expander("Occupancy Analysis"):
+        weekly_col, monthly_col = st.columns(2)
+        weekly_graph_container = weekly_col.container(border=True)
+        monthly_graph_container = monthly_col.container(border=True)
+        with weekly_graph_container:
+            utils.write_center("Average Occupancy per Weekday", tag="h3")
+
+            fig_weekly = create_weekly_figure()
+            st.plotly_chart(fig_weekly, use_container_width=False)
+
+        with monthly_graph_container:
+            utils.write_center("Average Occupancy per Month", tag="h3")
+            fig_weekly = create_monthly_figure()
+            st.plotly_chart(fig_weekly, use_container_width=False)
 
 
-if predict_btn:
-    sarima_params, hw_params, hw_smoothing_params, rf_params = get_model_parameters(
-        selected_models
-    )
+if not st.session_state.disable_btn:
+    if selected_models:
+        st.session_state.disable_btn = False
+    else:
+        st.session_state.disable_btn = True
+        with model_warning_container:
+            st.warning("Please choose a model.", icon="⚠️")
 
-    wrapper_params = generate_wrapper_params()
 
-    forecast_days = (
-        st.session_state.days_to_predict
-        if st.session_state.selected_type == utils.SelectedType.FORECAST
-        else 0
-    )
-    utils.set_iframe_timestamps(forecast_days)
+with predict_btn_col:
+    if st.button(
+        PREDICT_BTN_TEXT, disabled=st.session_state.disable_btn, type="primary"
+    ):
+        sarima_params, hw_params, hw_smoothing_params, rf_params = get_model_parameters(
+            selected_models
+        )
 
-    spinner_col, spinner_text = set_spinner_text(selected_models)
-    with spinner_col:
-        with st.spinner(spinner_text):
-            metrics = wrapper.call_wrapper(wrapper_params)
-            if metrics:
-                update_model_metrics(metrics)
-    st.session_state.selected_view = utils.SelectedView.FORECAST_VIEW
-    st.switch_page("pages/2_Forecast.py")
+        wrapper_params = generate_wrapper_params()
+
+        forecast_days = (
+            st.session_state.days_to_predict
+            if st.session_state.selected_type == utils.SelectedType.FORECAST
+            else 0
+        )
+        utils.set_iframe_timestamps(forecast_days)
+
+        with calculation_spinner_placeholder.container():
+            spinner_col, spinner_text = set_spinner_text(selected_models)
+            with spinner_col:
+                with st.spinner(spinner_text):
+                    try:
+                        metrics = wrapper.call_wrapper(wrapper_params)
+                    except ValueError:
+                        st.warning("Missing Data Points in data", icon="⚠️")
+                    except Exception:
+                        st.warning("Something went wrong ...", icon="⚠️")
+                    update_model_metrics(metrics)
+                    st.session_state.df.to_csv(
+                        os.path.join("output", "latest_history.csv"), index=False
+                    )
+                    st.switch_page("pages/2_Forecast.py")

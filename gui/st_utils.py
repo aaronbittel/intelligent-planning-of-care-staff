@@ -53,19 +53,16 @@ import pandas as pd
 import streamlit as st
 
 
-class SelectedView:
-    """Constants for different views."""
-
-    FORECAST_VIEW = "forecast_view"
-    WEEKLY_VIEW = "weekly_view"
-
-
 class SelectedType:
-    """Constants for different types."""
+    """Constants for different prediction types."""
 
     FORECAST = "forecast"
     TEST = "test"
     ACCURATE = "accurate"
+
+
+DEFAULT_FILE = "hero_dmc_heart_institute_india.csv"
+DISPLAY_FILE_NAMES = {DEFAULT_FILE: "Hero DMC Heart Institute India"}
 
 
 def load_values() -> None:
@@ -90,30 +87,6 @@ def save_value(key: str) -> None:
     :type key: str
     """
     st.session_state[f"_{key}"] = st.session_state[key]
-
-
-@st.cache_data
-def check_correct_csv_format(filename: str) -> bool:
-    """
-    Check if a CSV file has the correct format.
-
-    This function verifies that the CSV file contains the required columns
-    'dates' and 'occupancy', and that the 'dates' column can be parsed as dates.
-
-    :param filename: The name of the CSV file to check.
-    :type filename: str
-    :return: True if the CSV file has the correct format, False otherwise.
-    :rtype: bool
-    """
-    try:
-        pd.read_csv(
-            os.path.join("output", filename),
-            usecols=["date", "occupancy"],
-            parse_dates=["date"],
-        )
-        return True
-    except ValueError:
-        return False
 
 
 def int_input(
@@ -344,13 +317,13 @@ def set_metrics_variable() -> None:
         st.session_state.metrics = {
             "Sarima": {"RMSE": None, "MAPE": None, "MAE": None},
             "Random-Forest": {"RMSE": None, "MAPE": None, "MAE": None},
-            "Holt-Winters": {"RMSE": None, "MAPE": None, "MAE": None},
+            "Holt-Winter": {"RMSE": None, "MAPE": None, "MAE": None},
         }
 
 
 def read_data(file: StringIO) -> pd.DataFrame:
     """
-    Reads data from an uploaded CSV file and returns a DataFrame.
+    Read data from an uploaded CSV file and returns a DataFrame.
 
     This function reads a CSV file uploaded via Streamlit's file_uploader, extracting
     the 'date' and 'occupancy' columns, and parses the 'date' column as datetime
@@ -370,13 +343,53 @@ def read_data(file: StringIO) -> pd.DataFrame:
 
 def set_df_variable() -> None:
     """
-    Sets the DataFrame in the session state.
+    Set the DataFrame in the session state.
 
     This function reads data from 'cut-data.csv' in the 'output' directory and sets
     it as the 'df' variable in the session state. The 'cut-data.csv' file is used
     as the default CSV file.
     """
-    set_session_state_variable("df", read_data(os.path.join("output", "cut-data.csv")))
+    set_session_state_variable("df", read_data(os.path.join("output", DEFAULT_FILE)))
+
+
+def update_file_name(filename: str) -> None:
+    """
+    Updates the selected file name and its display name in the session state.
+
+    This function assigns the given filename to the `selected_file` attribute
+    in the session state and generates a display name for the file, which is
+    then assigned to the `file_display_name` attribute in the session state.
+
+    :param filename: The name of the file to be set and displayed.
+    :type filename: str
+    """
+    st.session_state.selected_file = filename
+    st.session_state.file_display_name = create_display_name(filename)
+
+
+def create_display_name(file_name: str) -> str:
+    """
+    Create a display name from a CSV file name.
+
+    The method takes a file name, splits it into components by underscores, capitalizes
+    each component, and joins them back together with spaces. The file extension is
+    removed in the process.
+
+    :param file_name: The file name to be processed.
+        E.g., "hero_dmc_heart_institute_india.csv"
+    :type file_name: str
+    :return: A display name with capitalized words and no file extension.
+        E.g., "Hero Dmc Heart Institute India"
+    :rtype: str
+    """
+    if file_name in DISPLAY_FILE_NAMES.keys():
+        return DISPLAY_FILE_NAMES[file_name]
+    return " ".join(
+        map(
+            lambda s: s.capitalize(),
+            file_name.rpartition(".")[0].split("_"),
+        )
+    )
 
 
 def set_all_session_state_variables() -> None:
@@ -387,12 +400,11 @@ def set_all_session_state_variables() -> None:
     application.
     """
     set_df_variable()
-    set_session_state_variable("selected_view", SelectedView.FORECAST_VIEW)
     set_session_state_variable("show_selected_file", False)
-    set_session_state_variable("selected_file", "cut-data.csv")
+    set_session_state_variable("selected_file", DEFAULT_FILE)
+    set_session_state_variable("file_display_name", create_display_name(DEFAULT_FILE))
     set_session_state_variable("disable_btn", False)
     set_session_state_variable("selected_type", SelectedType.FORECAST)
-    set_session_state_variable("file_name", "cut-data.csv")
     set_session_state_variable("start_timestamp")
     set_session_state_variable("end_timestamp")
     set_metrics_variable()
@@ -450,13 +462,13 @@ def on_page_load() -> None:
 
     :return: None
     """
-    st.set_page_config(layout="wide", initial_sidebar_state="expanded")
+    st.set_page_config(layout="wide", initial_sidebar_state="collapsed")
     set_all_session_state_variables()
 
 
-def center_text(text: str) -> st.columns:
+def center_col(text: str) -> st.columns:
     """
-    Centers a given text in a Streamlit application using a dynamic column layout.
+    Center a given text in a Streamlit application using a dynamic column layout.
 
     This function calculates the space required to center the text based on its length.
     It uses a simple linear formula to determine the column spacing and returns the
@@ -472,6 +484,13 @@ def center_text(text: str) -> st.columns:
     if column_space <= 0:
         column_space = 1
     return st.columns([1, column_space, 2, 1, 1])[2]
+
+
+def write_center(text: str, tag: str = "h1") -> None:
+    st.write(
+        f"<{tag} style='text-align:center'>{text}</{tag}>",
+        unsafe_allow_html=True,
+    )
 
 
 def center_button() -> None:

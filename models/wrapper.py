@@ -71,7 +71,7 @@ def build_models_and_predict(
         sarima_model = s.Sarima(train_data, prediction_days)
 
         prediction_rf = "Random-Forest", rf_model.predict()
-        prediction_hw = "Holt-Winters", hw_model.predict()
+        prediction_hw = "Holt-Winter", hw_model.predict()
         prediction_sarima = "Sarima", sarima_model.predict()
 
     # If True use the advanced parameters to fit and calculate the output.
@@ -98,7 +98,7 @@ def build_models_and_predict(
         )
 
         prediction_rf = "Random-Forest", rf_model.predict() if rf_model else None
-        prediction_hw = "Holt-Winters", hw_model.predict() if hw_model else None
+        prediction_hw = "Holt-Winter", hw_model.predict() if hw_model else None
         prediction_sarima = "Sarima", sarima_model.predict() if sarima_model else None
 
     return (
@@ -358,7 +358,7 @@ def call_wrapper(params):
                 prediction_hw=prediction_hw,
                 prediction_rf=prediction_rf,
             )
-        
+
             test_data, train_data = setup_test(df)
             (
                 rf_model,
@@ -408,7 +408,7 @@ def call_wrapper(params):
             )
             print(metrics)
             return metrics
-        
+
         case "accurate":
             (
                 rf_model,
