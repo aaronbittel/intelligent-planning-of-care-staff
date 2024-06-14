@@ -28,8 +28,8 @@ def create_random_forest():
                 st.button("random_state")
                 st.button("warm_start")
             with input_col:
-                utils.int_input("n_estimators", default=35)
-                utils.int_input("max_depth", default=6)
+                utils.int_input("n_estimators", default=35, max_val=1000)
+                utils.int_input("max_depth", default=6, max_val=50)
                 utils.int_input("min_samples_leaf", default=2)
                 utils.selectbox("max_features", ["log2", "sqrt", 1, 2, 3])
                 utils.float_input("min_impurity_decrease", default=0.0)
