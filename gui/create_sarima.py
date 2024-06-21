@@ -28,7 +28,7 @@ def create_sarima_parameters():
             with input_col:
                 utils.int_input("p", default=2)
                 utils.int_input("P", default=1)
-                utils.int_input("m", default=7)
+                utils.int_input("m", default=7, min_val=2, max_val=30)
         with col2:
             label_col, input_col = st.columns([1, 3])
             with label_col:
