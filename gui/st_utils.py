@@ -403,7 +403,8 @@ def set_all_session_state_variables() -> None:
     set_session_state_variable("show_selected_file", False)
     set_session_state_variable("selected_file", DEFAULT_FILE)
     set_session_state_variable("file_display_name", create_display_name(DEFAULT_FILE))
-    set_session_state_variable("disable_btn", False)
+    set_session_state_variable("is_button_disabled", False)
+    set_session_state_variable("valid_file", True)
     set_session_state_variable("selected_type", SelectedType.FORECAST)
     set_session_state_variable("start_timestamp")
     set_session_state_variable("end_timestamp")
@@ -419,9 +420,9 @@ def set_iframe_timestamps(forecast_days: int = 0) -> None:
     number of forecast days. The function then calculates the start and end timestamps
     and updates them in the session state.
 
-    If the selected_type is SelectedType.FORECAST, the end timestamp is extended by the
+    If the selected_type is 'forecast', the end timestamp is extended by the
     forecast_days to accommodate the forecasted values. If the selected_type is 'test'
-    or 'accurate', - forecast_days shoule be 0 - the end timestamp is set to the last
+    or 'accurate', -forecast_days shoule be 0 - the end timestamp is set to the last
     date in the data.
 
     :param forecast_days: The number of days to extend the end timestamp.

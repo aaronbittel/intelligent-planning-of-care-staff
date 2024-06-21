@@ -80,40 +80,82 @@ def get_model_parameters(selected_models: list[str]) -> tuple[dict, dict, dict, 
              Holt-Winter smoothing, and Random Forest models.
     :rtype: tuple[dict, dict, dict, dict]
     """
-    sarima_params = get_sarima_parameters() if "Sarima" in selected_models else {}
+    sarima_params = (
+        get_sarima_parameters() if "Sarima" in st.session_state.selected_models else {}
+    )
 
-    hw_params = get_holt_winter_parameters() if "Holt-Winter" in selected_models else {}
+    hw_params = (
+        get_holt_winter_parameters()
+        if "Holt-Winter" in st.session_state.selected_models
+        else {}
+    )
 
     hw_smoothing_params = (
-        get_holt_winter_smoothing_pararms() if "Holt-Winter" in selected_models else {}
+        get_holt_winter_smoothing_pararms()
+        if "Holt-Winter" in st.session_state.selected_models
+        else {}
     )
 
     rf_params = (
-        get_random_forest_parameters() if "Random Forest" in selected_models else {}
+        get_random_forest_parameters()
+        if "Random Forest" in st.session_state.selected_models
+        else {}
     )
 
     return sarima_params, hw_params, hw_smoothing_params, rf_params
 
 
-def generate_wrapper_params() -> list[str]:
+def generate_wrapper_params(
+    sarima_params: dict, hw_params: dict, hw_smoothing_params: dict, rf_params: dict
+) -> list[pd.DataFrame | int | str | dict]:
     """
-    Generate wrapper parameters.
+    Generate wrapper parameters for model prediction.
 
-    This function generates wrapper parameters required for the wrapper script
-    based on the selected file, days to predict, run type, and model parameters.
+    This function constructs a list of parameters required by the wrapper script
+    for performing predictions based on the selected data, prediction horizon,
+    prediction type, and model-specific parameters.
 
-    :return: A list of wrapper parameters.
-    :rtype: list[str]
+    :param sarima_params: Parameters for SARIMA model.
+    :type sarima_params: dict
+    :param hw_params: Parameters for Holt-Winters model.
+    :type hw_params: dict
+    :param hw_smoothing_params: Smoothing parameters for Holt-Winters model.
+    :type hw_smoothing_params: dict
+    :param rf_params: Parameters for Random Forest model.
+    :type rf_params: dict
+    :return: A list containing the following parameters:
+             - DataFrame: The selected data for prediction.
+             - int: Number of days to predict.
+             - str: Type of prediction run (forecast, test, accurate).
+             - dict: Parameters for SARIMA model.
+             - dict: Parameters for Holt-Winters model.
+             - dict: Smoothing parameters for Holt-Winters model.
+             - dict: Parameters for Random Forest model.
+    :rtype: list[pd.DataFrame | int | str | dict]
     """
     return [
         st.session_state.df,
         st.session_state.days_to_predict,
-        str(run_type).lower(),
+        str(st.session_state.selected_type).lower(),
         sarima_params,
         hw_params,
         hw_smoothing_params,
         rf_params,
     ]
+
+
+def set_predict_button_state() -> None:
+    """
+    Enable or disable the predict button based on file validity and model selection.
+
+    This function updates the `is_button_disabled` attribute in the Streamlit
+    session state. The button is enabled if a valid file is uploaded and models
+    are selected; otherwise, it is disabled.
+    """
+    if st.session_state.valid_file and st.session_state.selected_models:
+        st.session_state.is_button_disabled = False
+    else:
+        st.session_state.is_button_disabled = True
 
 
 def set_spinner_text(selected_models: list[str]) -> tuple[st.columns, str]:
@@ -274,6 +316,8 @@ add_vertical_space()
 
 calculation_spinner_placeholder = st.empty()
 
+wrapper_error_placeholder = st.empty()
+
 
 ########################################################################################
 #   CREATING WIDGETS                                                                   #
@@ -296,6 +340,29 @@ with setup_file_container:
     )
 
 
+if not file:
+    with file_selected_placeholder.container():
+        name = utils.create_display_name(st.session_state.selected_file)
+        st.info(f"**Selected File: {st.session_state.file_display_name}**")
+
+
+with occupancy_analysis_placeholder.container():
+    with st.expander("Occupancy Analysis"):
+        weekly_col, monthly_col = st.columns(2)
+        weekly_graph_container = weekly_col.container(border=True)
+        monthly_graph_container = monthly_col.container(border=True)
+        with weekly_graph_container:
+            utils.write_center("Average Occupancy per Weekday", tag="h3")
+
+            fig_weekly = create_weekly_figure()
+            st.plotly_chart(fig_weekly, use_container_width=False)
+
+        with monthly_graph_container:
+            utils.write_center("Average Occupancy per Month", tag="h3")
+            fig_weekly = create_monthly_figure()
+            st.plotly_chart(fig_weekly, use_container_width=False)
+
+
 with days_to_predict_container:
     st.write("How many days should the model predict?")
     utils.slider("days_to_predict", min_val=5, max_val=50, default=30)
@@ -308,17 +375,17 @@ with model_text_container:
 
 with advanced_container:
     with model_input_container:
-        selected_models = utils.multiselect(
-            "model",
+        utils.multiselect(
+            "selected_models",
             options=["Sarima", "Random Forest", "Holt-Winter"],
             default=["Sarima", "Random Forest", "Holt-Winter"],
         )
 
     with parameter_container:
-        if selected_models:
-            tabs = st.tabs(selected_models)
+        if st.session_state.selected_models:
+            tabs = st.tabs(st.session_state.selected_models)
 
-            for tab, model_name in zip(tabs, selected_models):
+            for tab, model_name in zip(tabs, st.session_state.selected_models):
                 with tab:
                     st.subheader("Parameters")
                     st.write("Set the parameters to maximaize model fit.")
@@ -359,55 +426,38 @@ if file:
             os.path.join("output", "latest_history.csv"), index=False
         )
         utils.update_file_name(file.name)
-        st.session_state.disable_btn = False
+        st.session_state.valid_file = True
     except ValueError:
         file_warning_placeholder.container().warning(
             "The csv file must have the columns 'date' and 'occupancy'", icon="⚠️"
         )
-        st.session_state.disable_btn = True
+        st.session_state.valid_file = False
     except Exception:
-        pass
-
-else:
-    with file_selected_placeholder.container():
-        name = utils.create_display_name(st.session_state.selected_file)
-        st.info(f"**Selected File: {st.session_state.file_display_name}**")
-
-with occupancy_analysis_placeholder.container():
-    with st.expander("Occupancy Analysis"):
-        weekly_col, monthly_col = st.columns(2)
-        weekly_graph_container = weekly_col.container(border=True)
-        monthly_graph_container = monthly_col.container(border=True)
-        with weekly_graph_container:
-            utils.write_center("Average Occupancy per Weekday", tag="h3")
-
-            fig_weekly = create_weekly_figure()
-            st.plotly_chart(fig_weekly, use_container_width=False)
-
-        with monthly_graph_container:
-            utils.write_center("Average Occupancy per Month", tag="h3")
-            fig_weekly = create_monthly_figure()
-            st.plotly_chart(fig_weekly, use_container_width=False)
+        file_warning_placeholder.container().warning(
+            "Unable to read the file.", icon="⚠️"
+        )
+        st.session_state.valid_file = False
 
 
-if not st.session_state.disable_btn:
-    if selected_models:
-        st.session_state.disable_btn = False
-    else:
-        st.session_state.disable_btn = True
-        with model_warning_container:
-            st.warning("Please choose a model.", icon="⚠️")
+if not st.session_state.selected_models:
+    with model_warning_container:
+        st.warning("Please choose a model.", icon="⚠️")
+
+
+set_predict_button_state()
 
 
 with predict_btn_col:
     if st.button(
-        PREDICT_BTN_TEXT, disabled=st.session_state.disable_btn, type="primary"
+        PREDICT_BTN_TEXT, disabled=st.session_state.is_button_disabled, type="primary"
     ):
         sarima_params, hw_params, hw_smoothing_params, rf_params = get_model_parameters(
-            selected_models
+            st.session_state.selected_models
         )
 
-        wrapper_params = generate_wrapper_params()
+        wrapper_params = generate_wrapper_params(
+            sarima_params, hw_params, hw_smoothing_params, rf_params
+        )
 
         forecast_days = (
             st.session_state.days_to_predict
@@ -417,17 +467,19 @@ with predict_btn_col:
         utils.set_iframe_timestamps(forecast_days)
 
         with calculation_spinner_placeholder.container():
-            spinner_col, spinner_text = set_spinner_text(selected_models)
+            spinner_col, spinner_text = set_spinner_text(
+                st.session_state.selected_models
+            )
             with spinner_col:
                 with st.spinner(spinner_text):
                     try:
                         metrics = wrapper.call_wrapper(wrapper_params)
+                        update_model_metrics(metrics)
+                        st.session_state.df.to_csv(
+                            os.path.join("output", "latest_history.csv"), index=False
+                        )
+                        st.switch_page("pages/2_Forecast.py")
                     except ValueError:
-                        st.warning("Missing Data Points in data", icon="⚠️")
+                        st.warning("Invalid parameter combination", icon="⚠️")
                     except Exception:
                         st.warning("Something went wrong ...", icon="⚠️")
-                    update_model_metrics(metrics)
-                    st.session_state.df.to_csv(
-                        os.path.join("output", "latest_history.csv"), index=False
-                    )
-                    st.switch_page("pages/2_Forecast.py")
