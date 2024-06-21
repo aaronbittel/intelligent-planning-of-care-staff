@@ -1,5 +1,6 @@
 import os
 from collections import namedtuple
+from io import StringIO
 
 import pandas as pd
 import plotly.express as px
@@ -80,26 +81,16 @@ def get_model_parameters(selected_models: list[str]) -> tuple[dict, dict, dict, 
              Holt-Winter smoothing, and Random Forest models.
     :rtype: tuple[dict, dict, dict, dict]
     """
-    sarima_params = (
-        get_sarima_parameters() if "Sarima" in st.session_state.selected_models else {}
-    )
+    sarima_params = get_sarima_parameters() if "Sarima" in selected_models else {}
 
-    hw_params = (
-        get_holt_winter_parameters()
-        if "Holt-Winter" in st.session_state.selected_models
-        else {}
-    )
+    hw_params = get_holt_winter_parameters() if "Holt-Winter" in selected_models else {}
 
     hw_smoothing_params = (
-        get_holt_winter_smoothing_pararms()
-        if "Holt-Winter" in st.session_state.selected_models
-        else {}
+        get_holt_winter_smoothing_pararms() if "Holt-Winter" in selected_models else {}
     )
 
     rf_params = (
-        get_random_forest_parameters()
-        if "Random Forest" in st.session_state.selected_models
-        else {}
+        get_random_forest_parameters() if "Random Forest" in selected_models else {}
     )
 
     return sarima_params, hw_params, hw_smoothing_params, rf_params
@@ -180,6 +171,45 @@ def set_spinner_text(selected_models: list[str]) -> tuple[st.columns, str]:
     else:
         spinner_text = f"Calculating {', '.join(selected_models)} models"
         return utils.center_col(spinner_text), spinner_text
+
+
+def handle_file_upload(file: StringIO) -> None:
+    """
+    Handle file upload and validation.
+
+    This function handles the upload of a CSV file, validates its contents, and updates
+    the Streamlit session state accordingly. It reads the uploaded file using a utility
+    function, saves it to a designated output directory as "latest_history.csv", and
+    updates the displayed file name. If the file does not conform to expected structure
+    (i.e., lacks columns 'date' and 'occupancy'), it raises a warning message. Any
+    other exceptions encountered during file reading or processing are also captured
+    and result in an appropriate warning. Finally, it sets the `valid_file` flag in
+    Streamlit session state to indicate whether the uploaded file was successfully
+    processed and validated.
+
+    :param file: The StringIO object containing the uploaded CSV file.
+    :type file: StringIO
+
+    :raises ValueError: If the uploaded CSV file does not contain expected columns.
+    :raises Exception: For any other unanticipated errors during file handling.
+    """
+    try:
+        st.session_state.df = utils.read_data(file)
+        st.session_state.df.to_csv(
+            os.path.join("output", "latest_history.csv"), index=False
+        )
+        utils.update_file_name(file.name)
+        st.session_state.valid_file = True
+    except ValueError:
+        file_warning_placeholder.container().warning(
+            "The csv file must have the columns 'date' and 'occupancy'", icon="⚠️"
+        )
+        st.session_state.valid_file = False
+    except Exception:
+        file_warning_placeholder.container().warning(
+            "Unable to read the file.", icon="⚠️"
+        )
+        st.session_state.valid_file = False
 
 
 def create_bar_chart(
@@ -316,8 +346,6 @@ add_vertical_space()
 
 calculation_spinner_placeholder = st.empty()
 
-wrapper_error_placeholder = st.empty()
-
 
 ########################################################################################
 #   CREATING WIDGETS                                                                   #
@@ -338,13 +366,12 @@ with setup_file_container:
         type=["csv"],
         label_visibility="collapsed",
     )
-
-
-if not file:
-    with file_selected_placeholder.container():
-        name = utils.create_display_name(st.session_state.selected_file)
-        st.info(f"**Selected File: {st.session_state.file_display_name}**")
-
+    if file:
+        handle_file_upload(file)
+    else:
+        with file_selected_placeholder.container():
+            name = utils.create_display_name(st.session_state.selected_file)
+            st.info(f"**Selected File: {st.session_state.file_display_name}**")
 
 with occupancy_analysis_placeholder.container():
     with st.expander("Occupancy Analysis"):
@@ -417,26 +444,6 @@ with advanced_container:
 ########################################################################################
 #   FUNCTIONALITY                                                                      #
 ########################################################################################
-
-
-if file:
-    try:
-        st.session_state.df = utils.read_data(file)
-        st.session_state.df.to_csv(
-            os.path.join("output", "latest_history.csv"), index=False
-        )
-        utils.update_file_name(file.name)
-        st.session_state.valid_file = True
-    except ValueError:
-        file_warning_placeholder.container().warning(
-            "The csv file must have the columns 'date' and 'occupancy'", icon="⚠️"
-        )
-        st.session_state.valid_file = False
-    except Exception:
-        file_warning_placeholder.container().warning(
-            "Unable to read the file.", icon="⚠️"
-        )
-        st.session_state.valid_file = False
 
 
 if not st.session_state.selected_models:
