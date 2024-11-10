@@ -1,3 +1,5 @@
+Dieses Projekt ist als Semesterprojekt an der Hochschule Augsburg in Zusammenarbeit mit der Firma XITASO GmbH entstanden. Es wurde von den Studierenden Florian Paul, Adrian Lebmeier, Van Phuc Nguyen, Farhan Riftantya, Alexander Valerian und Aaron Bittel unter der Betreuung von Prof. Dr.-Ing. Alexandra Teynor (THA), Julian Schanz (THA), Emily Schiller (XITASO) und Felix Reichel (XITASO) durchgeführt.
+
 # Schnellstart Anleitung
 
 Docker starten:
